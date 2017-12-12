@@ -103,8 +103,8 @@ render() {
   ];
 
   const progressByTeam = [
-    {name: 'HSBC', progress: 0.25, steps: 25000},
-    {name: 'Wazoku', progress: 0.75, steps: 75000}
+    {name: 'Wazoku', progress: 0.75, steps: 75000, colour: 'green'},
+    {name: 'HSBC', progress: 0.25, steps: 25000, colour: 'blue'},
   ];
 
   const lineData = [];
@@ -117,7 +117,7 @@ render() {
       lineData.push({
         fromCoords: fromCoords,
         toCoords: toCoords,
-        progress: progress / 22.729218252099866,
+        progress: progress / 15.93487645379707,
       });
     }
   });
@@ -127,20 +127,27 @@ render() {
 
   // TODO: finish here
   const findTeamCoordinates = (lineData, progress) => {
-    const upperIndex = lineData.findIndex(item => item.progress > progress);
-    const lowerProgress = lineData[upperIndex - 1].progress;
-    const higherProgress = lineData[upperIndex].progress;
-    const sectionLength = higherProgress - lowerProgress;
-    const distanceAlongSection = progress - lowerProgress;
-    const sectionProgress = distanceAlongSection / sectionLength;
-    const scaledCoords = lineData[upperIndex].toCoords.map(item => item * sectionProgress);
-    let output = lineData[upperIndex].fromCoords;
+    const upperIndex = lineData.findIndex(item => item.progress > progress)
+    const lowerProgress = lineData[upperIndex - 1].progress
+    const higherProgress = lineData[upperIndex].progress
+    const sectionLength = higherProgress - lowerProgress
+    const distanceAlongSection = progress - lowerProgress
+    const sectionProgress = distanceAlongSection / sectionLength
+    const diffCoords = [
+      lineData[upperIndex].toCoords[0] - lineData[upperIndex].fromCoords[0],
+      lineData[upperIndex].toCoords[1] - lineData[upperIndex].fromCoords[1],
+    ]
+    const scaledCoords = diffCoords.map(item => item * sectionProgress)
+    let output = lineData[upperIndex].fromCoords
     scaledCoords.forEach((item, index) => {
-      output[index] += item;
-    });
+      output[index] += item
+    })
 
-    return output;
-  };
+    console.log("TEST4")
+    console.log(output)
+
+    return output
+  }
 
   // console.log(findTeamCoordinates(lineData, 0.25))
 
@@ -199,6 +206,15 @@ render() {
       .style("opacity", .6)
       .style("fill", "brown")
       .attr("r", d => 6 * Math.sqrt(d.count));
+
+    const teamPoints = g.selectAll("rect")
+      .data(progressByTeam)
+      .enter().append("rect")
+      .style("stroke", "black")
+      .style("opacity", .6)
+      .style("fill", d => 'green')
+      .attr("width", 10)
+      .attr("height", 10)
 
     const defaultStyle = {
       padding: "0px 5px 0px 5px",
@@ -268,6 +284,11 @@ render() {
         + map.latLngToLayerPoint(d.coordinates).y + ")",
       )
 
+      teamPoints.attr("transform", d => "translate("
+        + map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).x + ","
+        + map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).y + ")",
+      )
+
       const lines = g.selectAll("line")
         .data(lineData)
         .enter().append("line")
@@ -277,6 +298,16 @@ render() {
         .attr("y2", d => map.latLngToLayerPoint(d.toCoords).y)
         .style("stroke-width", 1)
         .style("stroke", "black")
+
+      // const teamPoints = g.selectAll("circle")
+      //   .data(progressByTeam)
+      //   .enter().append("circle")
+      //   .attr("x", d => map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).x)
+      //   .attr("y", d => map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).y)
+      //   .style("stroke", "black")
+      //   .style("opacity", .6)
+      //   .style("fill", d => 'green')
+      //   .attr("r", 6)
     }
 
     map.on("viewreset", update)
