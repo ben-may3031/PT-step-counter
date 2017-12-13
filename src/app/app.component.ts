@@ -28,6 +28,7 @@ export class AppComponent {
 
   teams: any;
   map: any;
+  colourArray: any;
 
   constructor(db: AngularFireDatabase) {
     this.items = db.list('masterSheet');
@@ -305,6 +306,21 @@ render(end) {
       .attr("font-size", "30px")
       .text('\uf11e')
 
+      startFlag.attr("transform", d => "translate("
+        + this.map.latLngToLayerPoint(newMapData[0].coordinates).x + ","
+        + this.map.latLngToLayerPoint(newMapData[0].coordinates).y + ")",
+      );
+
+      endFlag.attr("transform", d => "translate("
+        + this.map.latLngToLayerPoint(newMapData[13].coordinates).x + ","
+        + this.map.latLngToLayerPoint(newMapData[13].coordinates).y + ")",
+      );
+
+      endFlag2.attr("transform", d => "translate("
+        + this.map.latLngToLayerPoint(newMapData[16].coordinates).x + ","
+        + this.map.latLngToLayerPoint(newMapData[16].coordinates).y + ")",
+      );
+
     // const innerFeature = g.selectAll("circle")
     //   .data(newMapData)
     //   .enter().append("circle")
@@ -365,20 +381,6 @@ render(end) {
     //     + map.latLngToLayerPoint(d.coordinates).y + ")",
     //   )
     //
-    //   startFlag.attr("transform", d => "translate("
-    //     + map.latLngToLayerPoint(newMapData[0].coordinates).x + ","
-    //     + map.latLngToLayerPoint(newMapData[0].coordinates).y + ")",
-    //   )
-    //
-    //   endFlag.attr("transform", d => "translate("
-    //     + map.latLngToLayerPoint(newMapData[13].coordinates).x + ","
-    //     + map.latLngToLayerPoint(newMapData[13].coordinates).y + ")",
-    //   )
-    //
-    //   endFlag2.attr("transform", d => "translate("
-    //     + map.latLngToLayerPoint(newMapData[16].coordinates).x + ","
-    //     + map.latLngToLayerPoint(newMapData[16].coordinates).y + ")",
-    //   )
     //
     //   // innerFeature.attr("transform", d => "translate("
     //   //   + map.latLngToLayerPoint(d.coordinates).x + ","
