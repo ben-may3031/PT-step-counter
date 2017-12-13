@@ -33,7 +33,18 @@ export class AppComponent {
     this.items = db.list('masterSheet');
     console.log(this.items);
     this.items.subscribe(val => this.onUpdate(val));
-
+    this.colourArray = [
+      "#49C8F7",
+      "#FF6E5B",
+      "#EDAB72",
+      "#7F73CA",
+      "#E36F86",
+      "#2976A3",
+      "#17A152",
+      "#ECD771",
+      "#A7CC4C",
+      "#2FCBC1",
+    ]
   }
 
   // compareSteps(a,b) {
@@ -118,25 +129,12 @@ render(end) {
     {count: 1, coordinates: [54.5919899, -5.9403295], label: 'Belfast'},
   ];
 
-  const colourArray = [
-    "#49C8F7",
-    "#FF6E5B",
-    "#EDAB72",
-    "#7F73CA",
-    "#E36F86",
-    "#2976A3",
-    "#17A152",
-    "#ECD771",
-    "#A7CC4C",
-    "#2FCBC1",
-  ]
-
   const progressByTeam = []
   end.forEach((item, index) => {
     progressByTeam.push({
       name: item.name,
       progress: item.steps / 1680000,
-      colour: colourArray[index],
+      colour: this.colourArray[index],
     })
   })
 
