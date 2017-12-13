@@ -33,6 +33,15 @@ export class AppComponent {
 
   }
 
+  // compareSteps(a,b) {
+  //   console.log("TESTER12233")
+  //   if (a.steps < b.steps)
+  //     return -1;
+  //   if (a.steps > b.steps)
+  //     return 1;
+  //   return 0;
+  // }
+
   onUpdate(data) {
     const headers = data[0];
     const teamIndex = headers.indexOf('Team');
@@ -71,11 +80,13 @@ export class AppComponent {
         }()),
       });
     }
+
+    end.sort((a, b) => b.steps - a.steps)
     console.log('teams:', end);
-    this.render();
+    this.render(end);
   }
 
-render() {
+render(end) {
   console.log('run');
   let map;
   let center;
@@ -102,10 +113,34 @@ render() {
     {count: 1, coordinates: [54.5919899, -5.9403295], label: 'Belfast'},
   ];
 
-  const progressByTeam = [
-    {name: 'Wazoku', progress: 0.75, steps: 75000, colour: 'green'},
-    {name: 'HSBC', progress: 0.25, steps: 25000, colour: 'blue'},
-  ];
+  const colourArray = [
+    "#49C8F7",
+    "#FF6E5B",
+    "#EDAB72",
+    "#7F73CA",
+    "#E36F86",
+    "#2976A3",
+    "#17A152",
+    "#ECD771",
+    "#A7CC4C",
+    "#2FCBC1",
+  ]
+
+  const progressByTeam = []
+  end.forEach((item, index) => {
+    progressByTeam.push({
+      name: item.name,
+      progress: item.steps / 1680000,
+      colour: colourArray[index],
+    })
+  })
+
+  // const progressByTeam = [
+  //   {name: 'Wazoku', progress: 0.75, steps: 75000, colour: 'green'},
+  //   {name: 'HSBC', progress: 0.25, steps: 25000, colour: 'blue'},
+  //   {name: 'abc', progress: 0.50, steps: 50000, colour: 'red'},
+  //   {name: 'def', progress: 0.55, steps: 55000, colour: 'yellow'},
+  // ];
 
   const lineData = [];
   let progress = 0;
@@ -122,13 +157,15 @@ render() {
     }
   });
 
-  console.log("TEST3");
-  console.log(lineData);
-
   // TODO: finish here
   const findTeamCoordinates = (lineData, progress) => {
     const upperIndex = lineData.findIndex(item => item.progress > progress)
-    const lowerProgress = lineData[upperIndex - 1].progress
+    let lowerProgress
+    if (upperIndex === 0) {
+      lowerProgress = 0
+    } else {
+      lowerProgress = lineData[upperIndex - 1].progress
+    }
     const higherProgress = lineData[upperIndex].progress
     const sectionLength = higherProgress - lowerProgress
     const distanceAlongSection = progress - lowerProgress
@@ -143,35 +180,55 @@ render() {
       output[index] += item
     })
 
-    console.log("TEST4")
-    console.log(output)
-
     return output
   }
 
+  // const getPointsToPlot = (newMapData, progressByTeam, map) => {
+  //   pointsToPlot = []
+  //   newMapData.forEach(item => {
+  //     pointsToPlot.push({
+  //       xCoordinate: map.latLngToLayerPoint(item.coordinates).x,
+  //       yCoordinate: map.latLngToLayerPoint(item.coordinates).y,
+  //       colour: 'brown',
+  //       label: item.label,
+  //     });
+  //   });
+  //
+  //   progressByTeam.forEach(item => {
+  //     pointsToPlot.push({
+  //       xCoordinate: map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).x,
+  //       yCoordinate: map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).y,
+  //       colour: item.colour,
+  //       label: item.name,
+  //     });
+  //   });
+  //
+  //   return pointsToPlot
+  // }
+
   // console.log(findTeamCoordinates(lineData, 0.25))
 
-  const getBounds = (coordsInput) => {
-    let bounds = [[0, 0], [0, 0]];
-
-    if (coordsInput.length > 0) {
-      bounds = [
-        [coordsInput[0].coordinates[0], coordsInput[0].coordinates[1]],
-        [coordsInput[0].coordinates[0], coordsInput[0].coordinates[1]],
-      ];
-      coordsInput.forEach(item => {
-        if (item.coordinates[0] < bounds[0][0]) {bounds[0][0] = item.coordinates[0]}
-
-        if (item.coordinates[0] > bounds[1][0]) {bounds[1][0] = item.coordinates[0]}
-
-        if (item.coordinates[1] < bounds[0][1]) {bounds[0][1] = item.coordinates[1]}
-
-        if (item.coordinates[1] > bounds[1][1]) {bounds[1][1] = item.coordinates[1]}
-      });
-    }
-
-    return bounds;
-  };
+  // const getBounds = (coordsInput) => {
+  //   let bounds = [[0, 0], [0, 0]];
+  //
+  //   if (coordsInput.length > 0) {
+  //     bounds = [
+  //       [coordsInput[0].coordinates[0], coordsInput[0].coordinates[1]],
+  //       [coordsInput[0].coordinates[0], coordsInput[0].coordinates[1]],
+  //     ];
+  //     coordsInput.forEach(item => {
+  //       if (item.coordinates[0] < bounds[0][0]) {bounds[0][0] = item.coordinates[0]}
+  //
+  //       if (item.coordinates[0] > bounds[1][0]) {bounds[1][0] = item.coordinates[0]}
+  //
+  //       if (item.coordinates[1] < bounds[0][1]) {bounds[0][1] = item.coordinates[1]}
+  //
+  //       if (item.coordinates[1] > bounds[1][1]) {bounds[1][1] = item.coordinates[1]}
+  //     });
+  //   }
+  //
+  //   return bounds;
+  // };
 
   const mapUpdate = () => {
     if (map) {
@@ -199,31 +256,34 @@ render() {
     const svg = d3.select(element).select("svg");
     const g = svg.append("g");
 
-    const outerFeature = g.selectAll("circle")
-      .data(newMapData)
-      .enter().append("circle")
-      .style("stroke", "black")
-      .style("opacity", .6)
-      .style("fill", "brown")
-      .attr("r", d => 6 * Math.sqrt(d.count));
+    // const teamPoints = g.selectAll(".rect")
+    //   .data(progressByTeam)
+    //   .enter().append("rect")
+    //   .style("stroke", "black")
+    //   .style("opacity", .6)
+    //   .style("fill", 'green')
+    //   .attr("width", 10)
+    //   .attr("height", 10)
+    //
+    // teamPoints.attr("transform", d => "translate("
+    //   + map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).x + ","
+    //   + map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).y + ")",
+    // )
 
-    const teamPoints = g.selectAll("rect")
-      .data(progressByTeam)
-      .enter().append("rect")
-      .style("stroke", "black")
-      .style("opacity", .6)
-      .style("fill", d => 'green')
-      .attr("width", 10)
-      .attr("height", 10)
 
-    const defaultStyle = {
-      padding: "0px 5px 0px 5px",
-      margin: "5px",
-      "border-radius": "16px",
-      "background-color": "white",
-      stroke: "none",
-      cursor: "pointer",
-    }
+    // outerFeature.attr("transform", d => "translate("
+    //   + map.latLngToLayerPoint(d.coordinates).x + ","
+    //   + map.latLngToLayerPoint(d.coordinates).y + ")",
+    // )
+
+    // const defaultStyle = {
+    //   padding: "0px 5px 0px 5px",
+    //   margin: "5px",
+    //   "border-radius": "16px",
+    //   "background-color": "white",
+    //   stroke: "none",
+    //   cursor: "pointer",
+    // }
 
     const startFlag = g.append('text')
       .style('font-family', 'FontAwesome')
@@ -247,82 +307,122 @@ render() {
     //   .style("fill", "black")
     //   .attr("r", 2)
 
-    // Add a label.
-    const text = g.selectAll("text")
-      .data(newMapData)
-      .enter().append("text")
-      .attr("font-size", "8px")
-      .text(d => d.label)
+    // // Add a label.
+    // const text = g.selectAll("text")
+    //   .data(newMapData)
+    //   .enter().append("text")
+    //   .attr("font-size", "8px")
+    //   .text(d => d.label)
 
-    const update = () => {
-      outerFeature.attr("transform", d => "translate("
-        + map.latLngToLayerPoint(d.coordinates).x + ","
-        + map.latLngToLayerPoint(d.coordinates).y + ")",
-      )
+    const lines = g.selectAll("line")
+      .data(lineData)
+      .enter().append("line")
+      .attr("x1", d => map.latLngToLayerPoint(d.fromCoords).x)
+      .attr("x2", d => map.latLngToLayerPoint(d.toCoords).x)
+      .attr("y1", d => map.latLngToLayerPoint(d.fromCoords).y)
+      .attr("y2", d => map.latLngToLayerPoint(d.toCoords).y)
+      .style("stroke-width", 1)
+      .style("stroke", "black")
 
-      startFlag.attr("transform", d => "translate("
-        + map.latLngToLayerPoint(newMapData[0].coordinates).x + ","
-        + map.latLngToLayerPoint(newMapData[0].coordinates).y + ")",
-      )
+    const pointsToPlot = []
+    newMapData.forEach(item => {
+      pointsToPlot.push({
+        xCoordinate: map.latLngToLayerPoint(item.coordinates).x,
+        yCoordinate: map.latLngToLayerPoint(item.coordinates).y,
+        colour: 'brown',
+        label: item.label,
+      });
+    });
 
-      endFlag.attr("transform", d => "translate("
-        + map.latLngToLayerPoint(newMapData[13].coordinates).x + ","
-        + map.latLngToLayerPoint(newMapData[13].coordinates).y + ")",
-      )
+    progressByTeam.forEach(item => {
+      pointsToPlot.push({
+        xCoordinate: map.latLngToLayerPoint(findTeamCoordinates(lineData, item.progress)).x,
+        yCoordinate: map.latLngToLayerPoint(findTeamCoordinates(lineData, item.progress)).y,
+        colour: item.colour,
+        label: item.name,
+      });
+    });
 
-      endFlag2.attr("transform", d => "translate("
-        + map.latLngToLayerPoint(newMapData[16].coordinates).x + ","
-        + map.latLngToLayerPoint(newMapData[16].coordinates).y + ")",
-      )
+    const outerFeature = g.selectAll(".circle")
+      .data(pointsToPlot)
+      .enter().append("circle")
+      .style("stroke", "black")
+      .style("opacity", .6)
+      .style("fill", d => d.colour)
+      .attr("r", 6)
+      .attr("cx", d => d.xCoordinate)
+      .attr("cy", d => d.yCoordinate)
 
-      // innerFeature.attr("transform", d => "translate("
-      //   + map.latLngToLayerPoint(d.coordinates).x + ","
-      //   + map.latLngToLayerPoint(d.coordinates).y + ")",
-      // )
-      text.attr("transform", d => "translate("
-        + map.latLngToLayerPoint(d.coordinates).x + ","
-        + map.latLngToLayerPoint(d.coordinates).y + ")",
-      )
 
-      teamPoints.attr("transform", d => "translate("
-        + map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).x + ","
-        + map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).y + ")",
-      )
+    // const update = () => {
+    //   outerFeature.attr("transform", d => "translate("
+    //     + map.latLngToLayerPoint(d.coordinates).x + ","
+    //     + map.latLngToLayerPoint(d.coordinates).y + ")",
+    //   )
+    //
+    //   startFlag.attr("transform", d => "translate("
+    //     + map.latLngToLayerPoint(newMapData[0].coordinates).x + ","
+    //     + map.latLngToLayerPoint(newMapData[0].coordinates).y + ")",
+    //   )
+    //
+    //   endFlag.attr("transform", d => "translate("
+    //     + map.latLngToLayerPoint(newMapData[13].coordinates).x + ","
+    //     + map.latLngToLayerPoint(newMapData[13].coordinates).y + ")",
+    //   )
+    //
+    //   endFlag2.attr("transform", d => "translate("
+    //     + map.latLngToLayerPoint(newMapData[16].coordinates).x + ","
+    //     + map.latLngToLayerPoint(newMapData[16].coordinates).y + ")",
+    //   )
+    //
+    //   // innerFeature.attr("transform", d => "translate("
+    //   //   + map.latLngToLayerPoint(d.coordinates).x + ","
+    //   //   + map.latLngToLayerPoint(d.coordinates).y + ")",
+    //   // )
+    //   text.attr("transform", d => "translate("
+    //     + map.latLngToLayerPoint(d.coordinates).x + ","
+    //     + map.latLngToLayerPoint(d.coordinates).y + ")",
+    //   )
+    //
+    //   teamPoints.attr("transform", d => "translate("
+    //     + map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).x + ","
+    //     + map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).y + ")",
+    //   )
+    //
+    //   const lines = g.selectAll("line")
+    //     .data(lineData)
+    //     .enter().append("line")
+    //     .attr("x1", d => map.latLngToLayerPoint(d.fromCoords).x)
+    //     .attr("x2", d => map.latLngToLayerPoint(d.toCoords).x)
+    //     .attr("y1", d => map.latLngToLayerPoint(d.fromCoords).y)
+    //     .attr("y2", d => map.latLngToLayerPoint(d.toCoords).y)
+    //     .style("stroke-width", 1)
+    //     .style("stroke", "black")
+    //
+    //   // const teamPoints = g.selectAll("circle")
+    //   //   .data(progressByTeam)
+    //   //   .enter().append("circle")
+    //   //   .attr("x", d => map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).x)
+    //   //   .attr("y", d => map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).y)
+    //   //   .style("stroke", "black")
+    //   //   .style("opacity", .6)
+    //   //   .style("fill", d => 'green')
+    //   //   .attr("r", 6)
+    // }
 
-      const lines = g.selectAll("line")
-        .data(lineData)
-        .enter().append("line")
-        .attr("x1", d => map.latLngToLayerPoint(d.fromCoords).x)
-        .attr("x2", d => map.latLngToLayerPoint(d.toCoords).x)
-        .attr("y1", d => map.latLngToLayerPoint(d.fromCoords).y)
-        .attr("y2", d => map.latLngToLayerPoint(d.toCoords).y)
-        .style("stroke-width", 1)
-        .style("stroke", "black")
-
-      // const teamPoints = g.selectAll("circle")
-      //   .data(progressByTeam)
-      //   .enter().append("circle")
-      //   .attr("x", d => map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).x)
-      //   .attr("y", d => map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).y)
-      //   .style("stroke", "black")
-      //   .style("opacity", .6)
-      //   .style("fill", d => 'green')
-      //   .attr("r", 6)
-    }
-
-    map.on("viewreset", update)
-    update()
+    // map.on("viewreset", update)
+    // update()
   }
 
-  const mapRender = () => {
-    map.setView([0, 0], 1)
-
-    const bounds = getBounds(newMapData);
-
-    console.log(bounds);
-
-    map.fitBounds(bounds);
-  };
+  // const mapRender = () => {
+  //   map.setView([0, 0], 1)
+  //
+  //   const bounds = getBounds(newMapData);
+  //
+  //   console.log(bounds);
+  //
+  //   map.fitBounds(bounds);
+  // };
 
   // scope.$watch('val', (newVal, oldVal) => {
   //   if (newVal) {
