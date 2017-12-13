@@ -13,13 +13,23 @@
       </div>
     </div>
     <div class="col-lg-6">
-      <ul>
-        <li *ngFor="let team of teams">
-          <span> {{team.name}} </span>
-          <span> {{team.steps}} </span>
-          <span> {{team.funds}} </span>
-        </li>
-      </ul>
+      <span>{{order}}</span>
+      <table class="table table-hover">
+        <thead>
+          <tr >
+            <th>Team</th>
+            <th>Steps</th>
+            <th>Donations</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let team of teams | orderBy: 'team.steps'">
+            <td>{{team.name}} </td>
+            <td>{{team.steps}}</td>
+            <td>{{team.funds}}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

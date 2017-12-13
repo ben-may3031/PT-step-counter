@@ -27,6 +27,7 @@ export class AppComponent {
   data: any;
 
   teams: any;
+  map: any;
 
   constructor(db: AngularFireDatabase) {
     this.items = db.list('masterSheet');

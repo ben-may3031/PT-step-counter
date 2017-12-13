@@ -8,6 +8,7 @@ import { AngularFireDatabaseModule } from 'angularfire2/database';
 import { AngularFireAuthModule } from 'angularfire2/auth';
 import { AngularFireDatabase, FirebaseListObservable, FirebaseObjectObservable } from 'angularfire2/database-deprecated';
 
+import { Ng2OrderModule } from 'ng2-order-pipe';
 
 import { AppComponent } from './app.component';
 
@@ -31,7 +32,8 @@ export const firebaseConfig = {
     AngularFireModule.initializeApp(firebaseConfig),
     AngularFireDatabaseModule,
     AngularFireAuthModule,
-    AngularFirestoreModule
+    AngularFirestoreModule,
+    Ng2OrderModule
   ],
   providers: [AngularFireDatabase],
   bootstrap: [AppComponent]
