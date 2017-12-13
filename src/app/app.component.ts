@@ -235,26 +235,28 @@ render(end) {
   // };
 
   const mapUpdate = () => {
-    if (map) {
-      map.remove();
+    if (document.getElementsByClassName("leaflet-container").length > 0) {
+      this.map.remove();
+
+      // clear the elements inside of the directive
+      d3.select(element).selectAll('*').remove();
     }
 
-    // clear the elements inside of the directive
-    d3.select(element).selectAll('*').remove();
-
-    map = new L.map(element).setView([55, -4], 6);
+    this.map = new L.map(element).setView([55, -4], 6);
     const mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; ' + mapLink + ' Contributors',
       // maxZoom: 180,
-    }).addTo(map);
+    }).addTo(this.map);
 
-    map.scrollWheelZoom.disable();
-    map.touchZoom.disable();
-    map.dragging.disable();
+    console.log(document.getElementsByClassName("leaflet-container").length)
+
+    this.map.scrollWheelZoom.disable();
+    this.map.touchZoom.disable();
+    this.map.dragging.disable();
 
     // Initialize the SVG layer
-    map._initPathRoot();
+    this.map._initPathRoot();
 
     // We simply pick up the SVG from the map object
     const svg = d3.select(element).select("svg");
@@ -321,18 +323,18 @@ render(end) {
     const lines = g.selectAll("line")
       .data(lineData)
       .enter().append("line")
-      .attr("x1", d => map.latLngToLayerPoint(d.fromCoords).x)
-      .attr("x2", d => map.latLngToLayerPoint(d.toCoords).x)
-      .attr("y1", d => map.latLngToLayerPoint(d.fromCoords).y)
-      .attr("y2", d => map.latLngToLayerPoint(d.toCoords).y)
+      .attr("x1", d => this.map.latLngToLayerPoint(d.fromCoords).x)
+      .attr("x2", d => this.map.latLngToLayerPoint(d.toCoords).x)
+      .attr("y1", d => this.map.latLngToLayerPoint(d.fromCoords).y)
+      .attr("y2", d => this.map.latLngToLayerPoint(d.toCoords).y)
       .style("stroke-width", 1)
       .style("stroke", "black")
 
     const pointsToPlot = []
     newMapData.forEach(item => {
       pointsToPlot.push({
-        xCoordinate: map.latLngToLayerPoint(item.coordinates).x,
-        yCoordinate: map.latLngToLayerPoint(item.coordinates).y,
+        xCoordinate: this.map.latLngToLayerPoint(item.coordinates).x,
+        yCoordinate: this.map.latLngToLayerPoint(item.coordinates).y,
         colour: 'brown',
         label: item.label,
       });
@@ -340,8 +342,8 @@ render(end) {
 
     progressByTeam.forEach(item => {
       pointsToPlot.push({
-        xCoordinate: map.latLngToLayerPoint(findTeamCoordinates(lineData, item.progress)).x,
-        yCoordinate: map.latLngToLayerPoint(findTeamCoordinates(lineData, item.progress)).y,
+        xCoordinate: this.map.latLngToLayerPoint(findTeamCoordinates(lineData, item.progress)).x,
+        yCoordinate: this.map.latLngToLayerPoint(findTeamCoordinates(lineData, item.progress)).y,
         colour: item.colour,
         label: item.name,
       });
@@ -434,7 +436,7 @@ render(end) {
   // mapRender()
 
   setTimeout(() => {
-    map.invalidateSize();
+    this.map.invalidateSize();
   }, 0);
 
 
