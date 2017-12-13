@@ -26,6 +26,8 @@ export class AppComponent {
   items: Observable<any[]>;
   data: any;
 
+  teams: any;
+
   constructor(db: AngularFireDatabase) {
     this.items = db.list('masterSheet');
     console.log(this.items);
@@ -81,9 +83,11 @@ export class AppComponent {
       });
     }
 
-    end.sort((a, b) => b.steps - a.steps)
+    end.sort((a, b) => b.steps - a.steps);
     console.log('teams:', end);
     this.render(end);
+    this.teams = end;
+    // this.render();
   }
 
 render(end) {

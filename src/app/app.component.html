@@ -1,6 +1,6 @@
 <div class="analytics-page">
   <div class="row">
-    <div class="col-lg-12">
+    <div class="col-lg-6">
       <div class="bs-component">
         <div class="callout callout-top callout-primary-black-text idea-map">
           <div class="callout-header">
@@ -11,6 +11,15 @@
           </div>
         </div>
       </div>
+    </div>
+    <div class="col-lg-6">
+      <ul>
+        <li *ngFor="let team of teams">
+          <span> {{team.name}} </span>
+          <span> {{team.steps}} </span>
+          <span> {{team.funds}} </span>
+        </li>
+      </ul>
     </div>
   </div>
 </div>
