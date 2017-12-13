@@ -53,7 +53,7 @@ export class AppComponent {
 
     const teamNames = [];
     data.map(x => {
-       if (!teamNames.includes(x[teamIndex]) && x[teamIndex] !== 'Team') {
+       if (!teamNames.includes(x[teamIndex]) && x[teamIndex] !== 'Team' && x[teamIndex].trim() !== '') {
         teamNames.push(x[teamIndex]);
        }
     });
