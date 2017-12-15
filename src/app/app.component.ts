@@ -139,12 +139,14 @@ render(end) {
     })
   })
 
-  // const progressByTeam = [
-  //   {name: 'Wazoku', progress: 0.75, steps: 75000, colour: 'green'},
-  //   {name: 'HSBC', progress: 0.25, steps: 25000, colour: 'blue'},
-  //   {name: 'abc', progress: 0.50, steps: 50000, colour: 'red'},
-  //   {name: 'def', progress: 0.55, steps: 55000, colour: 'yellow'},
-  // ];
+  console.log(progressByTeam)
+
+  const progressByTeam2 = [
+    {name: 'Wazoku', progress: 1, colour: 'green'},
+    {name: 'HSBC', progress: 0.5, colour: 'blue'},
+    {name: 'abc', progress: 0.4, colour: 'red'},
+    {name: 'def', progress: 0.2, colour: 'yellow'},
+  ];
 
   const lineData = [];
   let progress = 0;
@@ -160,6 +162,8 @@ render(end) {
       });
     }
   });
+
+  console.log(lineData)
 
   // TODO: finish here
   const findTeamCoordinates = (lineData, progress) => {
