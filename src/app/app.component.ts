@@ -35,17 +35,17 @@ export class AppComponent {
     console.log(this.items);
     this.items.subscribe(val => this.onUpdate(val));
     this.colourArray = [
-      "#49C8F7",
-      "#FF6E5B",
-      "#EDAB72",
-      "#7F73CA",
-      "#E36F86",
-      "#2976A3",
-      "#17A152",
-      "#ECD771",
-      "#A7CC4C",
-      "#2FCBC1",
-    ]
+      '#49C8F7',
+      '#FF6E5B',
+      '#EDAB72',
+      '#7F73CA',
+      '#E36F86',
+      '#2976A3',
+      '#17A152',
+      '#ECD771',
+      '#A7CC4C',
+      '#2FCBC1',
+    ];
   }
 
   // compareSteps(a,b) {
@@ -139,15 +139,6 @@ render(end) {
     })
   })
 
-  console.log(progressByTeam)
-
-  const progressByTeam2 = [
-    {name: 'Wazoku', progress: 1, colour: 'green'},
-    {name: 'HSBC', progress: 0.5, colour: 'blue'},
-    {name: 'abc', progress: 0.4, colour: 'red'},
-    {name: 'def', progress: 0.2, colour: 'yellow'},
-  ];
-
   const lineData = [];
   let progress = 0;
   newMapData.forEach((marker, index) => {
@@ -163,9 +154,6 @@ render(end) {
     }
   });
 
-  console.log(lineData)
-
-  // TODO: finish here
   const findTeamCoordinates = (lineData, progress) => {
     const upperIndex = lineData.findIndex(item => item.progress > progress)
     let lowerProgress
@@ -183,7 +171,7 @@ render(end) {
       lineData[upperIndex].toCoords[1] - lineData[upperIndex].fromCoords[1],
     ]
     const scaledCoords = diffCoords.map(item => item * sectionProgress)
-    let output = lineData[upperIndex].fromCoords
+    let output = Object.assign({}, lineData[upperIndex].fromCoords)
     scaledCoords.forEach((item, index) => {
       output[index] += item
     })
@@ -252,8 +240,6 @@ render(end) {
       attribution: '&copy; ' + mapLink + ' Contributors',
       // maxZoom: 180,
     }).addTo(this.map);
-
-    console.log(document.getElementsByClassName("leaflet-container").length)
 
     this.map.scrollWheelZoom.disable();
     this.map.touchZoom.disable();
@@ -360,9 +346,10 @@ render(end) {
     });
 
     progressByTeam.forEach(item => {
+      const teamCoordinates = findTeamCoordinates(lineData, item.progress)
       pointsToPlot.push({
-        xCoordinate: this.map.latLngToLayerPoint(findTeamCoordinates(lineData, item.progress)).x,
-        yCoordinate: this.map.latLngToLayerPoint(findTeamCoordinates(lineData, item.progress)).y,
+        xCoordinate: this.map.latLngToLayerPoint(L.latLng(teamCoordinates[0], teamCoordinates[1])).x,
+        yCoordinate: this.map.latLngToLayerPoint(L.latLng(teamCoordinates[0], teamCoordinates[1])).y,
         colour: item.colour,
         label: item.name,
       });
