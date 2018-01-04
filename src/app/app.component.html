@@ -13,24 +13,28 @@
       </div>
     </div>
     <div class="col-md-5">
-      <table class="table table-hover">
-        <thead>
-          <tr >
-            <th>#</th>
-            <th>Team</th>
-            <th>Steps</th>
-            <th>Donations</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let team of teams | orderBy: 'team.steps'; let i = index">
-            <td [style.background-color] = "colourArray[i]">{{i + 1}} </td>
-            <td>{{team.name}} </td>
-            <td>{{team.steps}}</td>
-            <td>{{team.funds}}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div id="table-wrapper">
+        <div id="table-scroll">
+          <table class="table table-hover">
+            <thead>
+              <tr >
+                <th>#</th>
+                <th>Team</th>
+                <th>Steps</th>
+                <th>Donations</th>
+              </tr>
+            </thead>
+            <tbody style="height=1em">
+              <tr *ngFor="let team of teams; let i = index">
+                <td [style.background-color] = "colourArray[i]">{{i + 1}} </td>
+                <td>{{team.name}} </td>
+                <td>{{team.steps}}</td>
+                <td>{{team.funds}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </div>

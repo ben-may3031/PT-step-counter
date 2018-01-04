@@ -96,15 +96,25 @@ export class AppComponent {
       });
     }
 
-    end.sort((a, b) => b.steps - a.steps);
-    console.log('teams:', end);
-    this.render(end);
-    this.teams = end;
-    // this.render();
+    // let end = [
+    //   {name: "Team 1", steps: 4000000, funds: 999},
+    //   {name: "Team 2", steps: 3000000, funds: 888},
+    //   {name: "Team 3", steps: 1680000, funds: 777},
+    //   {name: "Team 4", steps: 950000, funds: 666},
+    //   {name: "Team 5", steps: 900000, funds: 555},
+    //   {name: "Team 6", steps: 800000, funds: 444},
+    //   {name: "Team 7", steps: 500000, funds: 333},
+    //   {name: "Team 8", steps: 400000, funds: 222},
+    //   {name: "Team 9", steps: 200000, funds: 111},
+    //   {name: "Team 10", steps: 100000, funds: 2},
+    //   {name: "Team 11", steps: 50000, funds: 1},
+    // ]
+
+    this.teams = end.sort((a, b) => b.steps - a.steps);
+    this.render(this.teams);
   }
 
 render(end) {
-  console.log('run');
   let map;
   let center;
   const dataset = {};
@@ -131,10 +141,10 @@ render(end) {
   ];
 
   const progressByTeam = []
-  end.forEach((item, index) => {
+  end.slice(0, 10).forEach((item, index) => {
     progressByTeam.push({
       name: item.name,
-      progress: item.steps / 1680000,
+      progress: Math.min(1.4263, item.steps / 1680000),
       colour: this.colourArray[index],
     })
   })
@@ -342,6 +352,7 @@ render(end) {
         yCoordinate: this.map.latLngToLayerPoint(item.coordinates).y,
         colour: 'brown',
         label: item.label,
+        radius: 4,
       });
     });
 
@@ -352,6 +363,7 @@ render(end) {
         yCoordinate: this.map.latLngToLayerPoint(L.latLng(teamCoordinates[0], teamCoordinates[1])).y,
         colour: item.colour,
         label: item.name,
+        radius: 6,
       });
     });
 
@@ -361,7 +373,7 @@ render(end) {
       .style("stroke", "black")
       .style("opacity", .6)
       .style("fill", d => d.colour)
-      .attr("r", 6)
+      .attr("r", d => d.radius)
       .attr("cx", d => d.xCoordinate)
       .attr("cy", d => d.yCoordinate)
 
