@@ -70,45 +70,45 @@ export class AppComponent {
        }
     });
     const teamSteps = [];
-    const end = [];
+    // const end = [];
 
-    for (const team of teamNames) {
-      end.push({
-        name: team,
-        steps: (function() {
-          let stepCounter = 0;
-          for (const response of data) {
-              if (team === response[teamIndex]) {
-                stepCounter = stepCounter + response[stepIndex];
-              }
-          }
-          return stepCounter;
-        }()),
-        funds: (function() {
-          let fundCounter = 0;
-          for (const response of data) {
-            if (team === response[teamIndex]) {
-              fundCounter = fundCounter + response[fundIndex];
-            }
-          }
-          return fundCounter;
-        }()),
-      });
-    }
+    // for (const team of teamNames) {
+    //   end.push({
+    //     name: team,
+    //     steps: (function() {
+    //       let stepCounter = 0;
+    //       for (const response of data) {
+    //           if (team === response[teamIndex]) {
+    //             stepCounter = stepCounter + response[stepIndex];
+    //           }
+    //       }
+    //       return stepCounter;
+    //     }()),
+    //     funds: (function() {
+    //       let fundCounter = 0;
+    //       for (const response of data) {
+    //         if (team === response[teamIndex]) {
+    //           fundCounter = fundCounter + response[fundIndex];
+    //         }
+    //       }
+    //       return fundCounter;
+    //     }()),
+    //   });
+    // }
 
-    // let end = [
-    //   {name: "Team 1", steps: 4000000, funds: 999},
-    //   {name: "Team 2", steps: 3000000, funds: 888},
-    //   {name: "Team 3", steps: 1680000, funds: 777},
-    //   {name: "Team 4", steps: 950000, funds: 666},
-    //   {name: "Team 5", steps: 900000, funds: 555},
-    //   {name: "Team 6", steps: 800000, funds: 444},
-    //   {name: "Team 7", steps: 500000, funds: 333},
-    //   {name: "Team 8", steps: 400000, funds: 222},
-    //   {name: "Team 9", steps: 200000, funds: 111},
-    //   {name: "Team 10", steps: 100000, funds: 2},
-    //   {name: "Team 11", steps: 50000, funds: 1},
-    // ]
+    const end = [
+      {name: "Team 1", steps: 4000000, funds: 999},
+      {name: "Team 2", steps: 3000000, funds: 888},
+      {name: "Team 3", steps: 1680000, funds: 777},
+      {name: "Team 4", steps: 950000, funds: 666},
+      {name: "Team 5", steps: 900000, funds: 555},
+      {name: "Team 6", steps: 800000, funds: 444},
+      {name: "Team 7", steps: 500000, funds: 333},
+      {name: "Team 8", steps: 400000, funds: 222},
+      {name: "Team 9", steps: 200000, funds: 111},
+      {name: "Team 10", steps: 100000, funds: 2},
+      {name: "Team 11", steps: 50000, funds: 1},
+    ]
 
     this.teams = end.sort((a, b) => b.steps - a.steps);
     this.render(this.teams);
