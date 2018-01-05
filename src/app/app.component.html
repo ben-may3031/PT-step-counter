@@ -25,7 +25,7 @@
               </tr>
             </thead>
             <tbody style="height=1em">
-              <tr *ngFor="let team of teams; let i = index">
+              <tr *ngFor="let team of teamDataSorted; let i = index">
                 <td [style.background-color] = "colourArray[i]">{{i + 1}} </td>
                 <td>{{team.name}} </td>
                 <td>{{team.steps}}</td>

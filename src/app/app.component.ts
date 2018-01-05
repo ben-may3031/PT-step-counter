@@ -2,7 +2,6 @@
 declare const L;
 import { Component, OnInit } from '@angular/core';
 
-// import { AngularFireDatabase } from 'angularfire2/database';
 import { AngularFireModule } from 'angularfire2';
 import { AngularFireDatabase, FirebaseListObservable, FirebaseObjectObservable } from 'angularfire2/database-deprecated';
 
@@ -21,19 +20,26 @@ import * as d3 from 'd3';
 })
 export class AppComponent {
   title = 'app';
-  requiredSteps = 1680000;
 
   items: Observable<any[]>;
   data: any;
 
-  teams: any;
+  teamDataSorted: any;
   map: any;
   colourArray: any;
+  centreCoordinates: any;
+  lineData: any;
+  targetDistance: number;
+  targetNumberOfStepsForTeam: number;
+  maxProgress: number;
 
   constructor(db: AngularFireDatabase) {
+    // Watch for updates in the database and run onUpdate if watch triggered
     this.items = db.list('masterSheet');
-    console.log(this.items);
     this.items.subscribe(val => this.onUpdate(val));
+
+    // Set the colours associated with the top 10 teams (used for the map and the
+    // leaderboard)
     this.colourArray = [
       '#49C8F7',
       '#FF6E5B',
@@ -46,35 +52,71 @@ export class AppComponent {
       '#A7CC4C',
       '#2FCBC1',
     ];
+
+    // Set GPS coordinates and order for PT centres to be shown on map
+    this.centreCoordinates = [
+      {coordinates: [51.3923509, 0.5266571], label: 'Chatham Centre'},
+      {coordinates: [51.5186418, -0.0853988], label: 'London'},
+      {coordinates: [50.8984317, -1.4037609], label: 'Southampton'},
+      {coordinates: [51.4525093, -2.5881386], label: 'Bristol'},
+      {coordinates: [51.4752889, -3.1558228], label: 'Cardiff'},
+      {coordinates: [52.475385, -1.8845159], label: 'Birmingham'},
+      {coordinates: [52.9682854, -1.1602592], label: 'Nottingham'},
+      {coordinates: [53.3825092, -1.4725113], label: 'Sheffield'},
+      {coordinates: [53.4031032, -2.9765692], label: 'Liverpool'},
+      {coordinates: [53.4601658, -2.276423], label: 'Manchester'},
+      {coordinates: [53.7984933, -1.5454026], label: 'Leeds'},
+      {coordinates: [54.5832051, -1.2314987], label: 'Middlesborough'},
+      {coordinates: [54.974209, -1.67762], label: 'Newcastle'},
+      {coordinates: [55.9747091, -3.1822447], label: 'Edinburgh'},
+      {coordinates: [56.4689391, -2.9553223], label: 'Dundee'},
+      {coordinates: [55.8542723, -4.2577225], label: 'Glasgow'},
+      {coordinates: [54.5919899, -5.9403295], label: 'Belfast'},
+    ];
+
+    // Set the distance along the route corresponding to target progress (currently
+    // distance to Edinburgh (in GPS coordinate space))
+    this.targetDistance = 15.93487645379707;
+
+    // Set the target number of steps for a team
+    this.targetNumberOfStepsForTeam = 1680000;
+
+    // Set the maximum progress proportion that can be shown for a team on the map
+    // This is set to stop the team markers overshooting the final centre on the route
+    this.maxProgress = 1.4263;
   }
 
-  // compareSteps(a,b) {
-  //   console.log("TESTER12233")
-  //   if (a.steps < b.steps)
-  //     return -1;
-  //   if (a.steps > b.steps)
-  //     return 1;
-  //   return 0;
-  // }
-
   onUpdate(data) {
+    // data is an array of arrays, with the first array being an array of headers and
+    // all others being an array of values with each element associated with the header
+    // having the same index. We are interested in the "Team", "Steps" and "Donation"
+    // fields. The indices for these fields are found here using the header array
     const headers = data[0];
     const teamIndex = headers.indexOf('Team');
     const stepIndex = headers.indexOf('Steps');
     const fundIndex = headers.indexOf('Donation');
 
+    // Generate a list of unique and non-blank team names appearing in the data.
+    // Note that the header entry is excluded by excluding any value equal to "Team",
+    // therefore a team cannot have the name "Team"
     const teamNames = [];
     data.map(x => {
        if (!teamNames.includes(x[teamIndex]) && x[teamIndex] !== 'Team' && x[teamIndex].trim() !== '') {
         teamNames.push(x[teamIndex]);
        }
     });
-    const teamSteps = [];
-    const end = [];
 
+    // Generate an array of team data, storing the team name, the total amount of steps
+    // the team has entered over all database records associated with the team, and the
+    // total amount of donations entered over all database records associated with the
+    // team
+    const teamData = [];
+    // Loop over all teams in teamNames
     for (const team of teamNames) {
-      end.push({
+      teamData.push({
         name: team,
+        // Loop over all database records and increment by the number of steps for the
+        // record if the team is the team considered in the outer loop
         steps: (function() {
           let stepCounter = 0;
           for (const response of data) {
@@ -84,6 +126,8 @@ export class AppComponent {
           }
           return stepCounter;
         }()),
+        // Loop over all database records and increment by the donation amount for the
+        // record if the team is the team considered in the outer loop
         funds: (function() {
           let fundCounter = 0;
           for (const response of data) {
@@ -96,353 +140,185 @@ export class AppComponent {
       });
     }
 
-    // const end = [
-    //   {name: "Team 1 dfgdrfg drtfgdrag", steps: 4000000, funds: 999},
-    //   {name: "Team 2", steps: 3000000, funds: 888},
-    //   {name: "Team 3", steps: 1680000, funds: 777},
-    //   {name: "Team 4", steps: 950000, funds: 666},
-    //   {name: "Team 5", steps: 900000, funds: 555},
-    //   {name: "Team 6", steps: 800000, funds: 444},
-    //   {name: "Team 7", steps: 500000, funds: 333},
-    //   {name: "Team 8", steps: 400000, funds: 222},
-    //   {name: "Team 9", steps: 200000, funds: 111},
-    //   {name: "Team 10", steps: 100000, funds: 2},
-    //   {name: "Team 11", steps: 50000, funds: 1},
-    // ]
-
-    this.teams = end.sort((a, b) => b.steps - a.steps);
-    this.render(this.teams);
+    // Sort the team data by number of step (descending)
+    this.teamDataSorted = teamData.sort((a, b) => b.steps - a.steps);
+    // Use the sorted team data to plot the map
+    this.renderMap(this.teamDataSorted);
   }
 
-render(end) {
-  let map;
-  let center;
-  const dataset = {};
-  const element = document.getElementById('leafletmap');
+  renderMap(teamDataSorted) {
+    // Evaluate the coordinates for the start and end points of all the line sections
+    // (joining centres) to be plotted. Evaluate also the route progress for each line end
+    // point, where progress is defined as the distance covered on the route up to that
+    // point as a proportion of the distance covered to Edinburgh (which is not the last
+    // centre on the route, so progress can exceed 1)
+    this.lineData = [];
+    let cumulativeDistanceCovered = 0;
+    // Loop over the array of PT centre coordinates and labels
+    this.centreCoordinates.forEach((marker, index) => {
+      // Only consider points after the first since we are building a list of start
+      // and end points
+      if (index > 0) {
+        // Set from coordinates as previous point coordinates
+        const fromCoords = this.centreCoordinates[index - 1].coordinates;
+        // Set to coordinates as current point coordinates
+        const toCoords = marker.coordinates;
+        // Increment cumulative progress by the length of the line between the from and to
+        // coordinates
+        cumulativeDistanceCovered += Math.pow(toCoords[0] - fromCoords[0], 2) + Math.pow(toCoords[1] - fromCoords[1], 2);
+        // Store from coordinates, to coordinates, and cumulative progress on route up to
+        // to coordinates as a proportion of cumulative progress up to Edinburgh
+        this.lineData.push({
+          fromCoords: fromCoords,
+          toCoords: toCoords,
+          progress: cumulativeDistanceCovered / this.targetDistance,
+        });
+      }
+    });
 
-  const newMapData = [
-    {count: 1, coordinates: [51.3923509, 0.5266571], label: 'Chatham Centre'},
-    {count: 1, coordinates: [51.5186418, -0.0853988], label: 'London'},
-    {count: 1, coordinates: [50.8984317, -1.4037609], label: 'Southampton'},
-    {count: 1, coordinates: [51.4525093, -2.5881386], label: 'Bristol'},
-    {count: 1, coordinates: [51.4752889, -3.1558228], label: 'Cardiff'},
-    {count: 1, coordinates: [52.475385, -1.8845159], label: 'Birmingham'},
-    {count: 1, coordinates: [52.9682854, -1.1602592], label: 'Nottingham'},
-    {count: 1, coordinates: [53.3825092, -1.4725113], label: 'Sheffield'},
-    {count: 1, coordinates: [53.4031032, -2.9765692], label: 'Liverpool'},
-    {count: 1, coordinates: [53.4601658, -2.276423], label: 'Manchester'},
-    {count: 1, coordinates: [53.7984933, -1.5454026], label: 'Leeds'},
-    {count: 1, coordinates: [54.5832051, -1.2314987], label: 'Middlesborough'},
-    {count: 1, coordinates: [54.974209, -1.67762], label: 'Newcastle'},
-    {count: 1, coordinates: [55.9747091, -3.1822447], label: 'Edinburgh'},
-    {count: 1, coordinates: [56.4689391, -2.9553223], label: 'Dundee'},
-    {count: 1, coordinates: [55.8542723, -4.2577225], label: 'Glasgow'},
-    {count: 1, coordinates: [54.5919899, -5.9403295], label: 'Belfast'},
-  ];
-
-  const progressByTeam = []
-  end.slice(0, 10).forEach((item, index) => {
-    progressByTeam.push({
-      name: item.name,
-      progress: Math.min(1.4263, item.steps / 1680000),
-      colour: this.colourArray[index],
-    })
-  })
-
-  const lineData = [];
-  let progress = 0;
-  newMapData.forEach((marker, index) => {
-    if (index > 0) {
-      const fromCoords = newMapData[index - 1].coordinates;
-      const toCoords = marker.coordinates;
-      progress += Math.pow(toCoords[0] - fromCoords[0], 2) + Math.pow(toCoords[1] - fromCoords[1], 2)
-      lineData.push({
-        fromCoords: fromCoords,
-        toCoords: toCoords,
-        progress: progress / 15.93487645379707,
-      });
-    }
-  });
-
-  const findTeamCoordinates = (lineData, progress) => {
-    const upperIndex = lineData.findIndex(item => item.progress > progress)
-    let lowerProgress
-    if (upperIndex === 0) {
-      lowerProgress = 0
-    } else {
-      lowerProgress = lineData[upperIndex - 1].progress
-    }
-    const higherProgress = lineData[upperIndex].progress
-    const sectionLength = higherProgress - lowerProgress
-    const distanceAlongSection = progress - lowerProgress
-    const sectionProgress = distanceAlongSection / sectionLength
-    const diffCoords = [
-      lineData[upperIndex].toCoords[0] - lineData[upperIndex].fromCoords[0],
-      lineData[upperIndex].toCoords[1] - lineData[upperIndex].fromCoords[1],
-    ]
-    const scaledCoords = diffCoords.map(item => item * sectionProgress)
-    let output = Object.assign({}, lineData[upperIndex].fromCoords)
-    scaledCoords.forEach((item, index) => {
-      output[index] += item
-    })
-
-    return output
-  }
-
-  // const getPointsToPlot = (newMapData, progressByTeam, map) => {
-  //   pointsToPlot = []
-  //   newMapData.forEach(item => {
-  //     pointsToPlot.push({
-  //       xCoordinate: map.latLngToLayerPoint(item.coordinates).x,
-  //       yCoordinate: map.latLngToLayerPoint(item.coordinates).y,
-  //       colour: 'brown',
-  //       label: item.label,
-  //     });
-  //   });
-  //
-  //   progressByTeam.forEach(item => {
-  //     pointsToPlot.push({
-  //       xCoordinate: map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).x,
-  //       yCoordinate: map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).y,
-  //       colour: item.colour,
-  //       label: item.name,
-  //     });
-  //   });
-  //
-  //   return pointsToPlot
-  // }
-
-  // console.log(findTeamCoordinates(lineData, 0.25))
-
-  // const getBounds = (coordsInput) => {
-  //   let bounds = [[0, 0], [0, 0]];
-  //
-  //   if (coordsInput.length > 0) {
-  //     bounds = [
-  //       [coordsInput[0].coordinates[0], coordsInput[0].coordinates[1]],
-  //       [coordsInput[0].coordinates[0], coordsInput[0].coordinates[1]],
-  //     ];
-  //     coordsInput.forEach(item => {
-  //       if (item.coordinates[0] < bounds[0][0]) {bounds[0][0] = item.coordinates[0]}
-  //
-  //       if (item.coordinates[0] > bounds[1][0]) {bounds[1][0] = item.coordinates[0]}
-  //
-  //       if (item.coordinates[1] < bounds[0][1]) {bounds[0][1] = item.coordinates[1]}
-  //
-  //       if (item.coordinates[1] > bounds[1][1]) {bounds[1][1] = item.coordinates[1]}
-  //     });
-  //   }
-  //
-  //   return bounds;
-  // };
-
-  const mapUpdate = () => {
-    if (document.getElementsByClassName("leaflet-container").length > 0) {
-      this.map.remove();
-
-      // clear the elements inside of the directive
-      d3.select(element).selectAll('*').remove();
-    }
-
-    this.map = new L.map(element).setView([55, -4], 6);
-    const mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; ' + mapLink + ' Contributors',
-      // maxZoom: 180,
-    }).addTo(this.map);
-
-    this.map.scrollWheelZoom.disable();
-    this.map.touchZoom.disable();
-    this.map.dragging.disable();
-
-    // Initialize the SVG layer
-    this.map._initPathRoot();
-
-    // We simply pick up the SVG from the map object
-    const svg = d3.select(element).select("svg");
-    const g = svg.append("g");
-
-    // const teamPoints = g.selectAll(".rect")
-    //   .data(progressByTeam)
-    //   .enter().append("rect")
-    //   .style("stroke", "black")
-    //   .style("opacity", .6)
-    //   .style("fill", 'green')
-    //   .attr("width", 10)
-    //   .attr("height", 10)
-    //
-    // teamPoints.attr("transform", d => "translate("
-    //   + map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).x + ","
-    //   + map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).y + ")",
-    // )
-
-
-    // outerFeature.attr("transform", d => "translate("
-    //   + map.latLngToLayerPoint(d.coordinates).x + ","
-    //   + map.latLngToLayerPoint(d.coordinates).y + ")",
-    // )
-
-    // const defaultStyle = {
-    //   padding: "0px 5px 0px 5px",
-    //   margin: "5px",
-    //   "border-radius": "16px",
-    //   "background-color": "white",
-    //   stroke: "none",
-    //   cursor: "pointer",
-    // }
-
-    const startFlag = g.append('text')
-      .style('font-family', 'FontAwesome')
-      .attr("font-size", "30px")
-      .text('\uf11e')
-
-    const endFlag = g.append('text')
-      .style('font-family', 'FontAwesome')
-      .attr("font-size", "30px")
-      .text('\uf11e')
-
-    const endFlag2 = g.append('text')
-      .style('font-family', 'FontAwesome')
-      .attr("font-size", "30px")
-      .text('\uf11e')
-
-      startFlag.attr("transform", d => "translate("
-        + this.map.latLngToLayerPoint(newMapData[0].coordinates).x + ","
-        + this.map.latLngToLayerPoint(newMapData[0].coordinates).y + ")",
-      );
-
-      endFlag.attr("transform", d => "translate("
-        + this.map.latLngToLayerPoint(newMapData[13].coordinates).x + ","
-        + this.map.latLngToLayerPoint(newMapData[13].coordinates).y + ")",
-      );
-
-      endFlag2.attr("transform", d => "translate("
-        + this.map.latLngToLayerPoint(newMapData[16].coordinates).x + ","
-        + this.map.latLngToLayerPoint(newMapData[16].coordinates).y + ")",
-      );
-
-    // const innerFeature = g.selectAll("circle")
-    //   .data(newMapData)
-    //   .enter().append("circle")
-    //   .style("stroke", "black")
-    //   .style("fill", "black")
-    //   .attr("r", 2)
-
-    // // Add a label.
-    // const text = g.selectAll("text")
-    //   .data(newMapData)
-    //   .enter().append("text")
-    //   .attr("font-size", "8px")
-    //   .text(d => d.label)
-
-    const lines = g.selectAll("line")
-      .data(lineData)
-      .enter().append("line")
-      .attr("x1", d => this.map.latLngToLayerPoint(d.fromCoords).x)
-      .attr("x2", d => this.map.latLngToLayerPoint(d.toCoords).x)
-      .attr("y1", d => this.map.latLngToLayerPoint(d.fromCoords).y)
-      .attr("y2", d => this.map.latLngToLayerPoint(d.toCoords).y)
-      .style("stroke-width", 1)
-      .style("stroke", "black")
-
-    const pointsToPlot = []
-    newMapData.forEach(item => {
-      pointsToPlot.push({
-        xCoordinate: this.map.latLngToLayerPoint(item.coordinates).x,
-        yCoordinate: this.map.latLngToLayerPoint(item.coordinates).y,
-        colour: 'brown',
-        label: item.label,
-        radius: 4,
+    // Evaluate an array of team data, storing the team name, the number of steps
+    // the team has entered as a proportion of the steps target capped at this.maxProgress
+    // (which is currently the progress along the map route to Belfast, the final centre
+    // of the route), and the colour to be associated with the team in the map.
+    // The array is set to contain data for the top ten teams by total number of steps
+    const progressByTeam = [];
+    teamDataSorted.slice(0, 10).forEach((item, index) => {
+      progressByTeam.push({
+        name: item.name,
+        progress: Math.min(this.maxProgress, item.steps / this.targetNumberOfStepsForTeam),
+        colour: this.colourArray[index],
       });
     });
 
-    progressByTeam.forEach(item => {
-      const teamCoordinates = findTeamCoordinates(lineData, item.progress)
-      pointsToPlot.push({
-        xCoordinate: this.map.latLngToLayerPoint(L.latLng(teamCoordinates[0], teamCoordinates[1])).x,
-        yCoordinate: this.map.latLngToLayerPoint(L.latLng(teamCoordinates[0], teamCoordinates[1])).y,
-        colour: item.colour,
-        label: item.name,
-        radius: 6,
+    // Evaluate the GPS coordinates (used to plot a team marker) given line data for a map
+    // and a (team) progress proportion
+    const findTeamCoordinates = (lineData, progress) => {
+      const upperIndex = lineData.findIndex(item => item.progress > progress);
+      let lowerProgress;
+      if (upperIndex === 0) {
+        lowerProgress = 0;
+      } else {
+        lowerProgress = lineData[upperIndex - 1].progress;
+      }
+      const higherProgress = lineData[upperIndex].progress;
+      const sectionLength = higherProgress - lowerProgress;
+      const distanceAlongSection = progress - lowerProgress;
+      const sectionProgress = distanceAlongSection / sectionLength;
+      const diffCoords = [
+        lineData[upperIndex].toCoords[0] - lineData[upperIndex].fromCoords[0],
+        lineData[upperIndex].toCoords[1] - lineData[upperIndex].fromCoords[1],
+      ];
+      const scaledCoords = diffCoords.map(item => item * sectionProgress);
+      const output = Object.assign({}, lineData[upperIndex].fromCoords);
+      scaledCoords.forEach((item, index) => {
+        output[index] += item;
       });
-    });
 
-    const outerFeature = g.selectAll(".circle")
-      .data(pointsToPlot)
-      .enter().append("circle")
-      .style("stroke", "black")
-      .style("opacity", .6)
-      .style("fill", d => d.colour)
-      .attr("r", d => d.radius)
-      .attr("cx", d => d.xCoordinate)
-      .attr("cy", d => d.yCoordinate)
+      return output;
+    };
 
+    const mapUpdate = () => {
+      let element;
 
-    // const update = () => {
-    //   outerFeature.attr("transform", d => "translate("
-    //     + map.latLngToLayerPoint(d.coordinates).x + ","
-    //     + map.latLngToLayerPoint(d.coordinates).y + ")",
-    //   )
-    //
-    //
-    //   // innerFeature.attr("transform", d => "translate("
-    //   //   + map.latLngToLayerPoint(d.coordinates).x + ","
-    //   //   + map.latLngToLayerPoint(d.coordinates).y + ")",
-    //   // )
-    //   text.attr("transform", d => "translate("
-    //     + map.latLngToLayerPoint(d.coordinates).x + ","
-    //     + map.latLngToLayerPoint(d.coordinates).y + ")",
-    //   )
-    //
-    //   teamPoints.attr("transform", d => "translate("
-    //     + map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).x + ","
-    //     + map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).y + ")",
-    //   )
-    //
-    //   const lines = g.selectAll("line")
-    //     .data(lineData)
-    //     .enter().append("line")
-    //     .attr("x1", d => map.latLngToLayerPoint(d.fromCoords).x)
-    //     .attr("x2", d => map.latLngToLayerPoint(d.toCoords).x)
-    //     .attr("y1", d => map.latLngToLayerPoint(d.fromCoords).y)
-    //     .attr("y2", d => map.latLngToLayerPoint(d.toCoords).y)
-    //     .style("stroke-width", 1)
-    //     .style("stroke", "black")
-    //
-    //   // const teamPoints = g.selectAll("circle")
-    //   //   .data(progressByTeam)
-    //   //   .enter().append("circle")
-    //   //   .attr("x", d => map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).x)
-    //   //   .attr("y", d => map.latLngToLayerPoint(findTeamCoordinates(lineData, d.progress)).y)
-    //   //   .style("stroke", "black")
-    //   //   .style("opacity", .6)
-    //   //   .style("fill", d => 'green')
-    //   //   .attr("r", 6)
-    // }
+      if (document.getElementsByClassName('leaflet-container').length > 0) {
+        this.map.remove();
 
-    // map.on("viewreset", update)
-    // update()
+        // clear the elements inside of the directive
+        d3.select(element).selectAll('*').remove();
+      }
+
+      element = document.getElementById('leafletmap');
+
+      this.map = new L.map(element).setView([55, -4], 6);
+      const mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; ' + mapLink + ' Contributors',
+        // maxZoom: 180,
+      }).addTo(this.map);
+
+      this.map.scrollWheelZoom.disable();
+      this.map.touchZoom.disable();
+      this.map.dragging.disable();
+
+      // Initialize the SVG layer
+      this.map._initPathRoot();
+
+      // We simply pick up the SVG from the map object
+      const svg = d3.select(element).select('svg');
+      const g = svg.append('g');
+
+      const startFlag = g.append('text')
+        .style('font-family', 'FontAwesome')
+        .attr('font-size', '30px')
+        .text('\uf11e');
+
+      startFlag.attr('transform', d => 'translate('
+        + this.map.latLngToLayerPoint(this.centreCoordinates[0].coordinates).x + ','
+        + this.map.latLngToLayerPoint(this.centreCoordinates[0].coordinates).y + ')',
+      );
+
+      const endFlag = g.append('text')
+        .style('font-family', 'FontAwesome')
+        .attr('font-size', '30px')
+        .text('\uf11e');
+
+      endFlag.attr('transform', d => 'translate('
+        + this.map.latLngToLayerPoint(this.centreCoordinates[13].coordinates).x + ','
+        + this.map.latLngToLayerPoint(this.centreCoordinates[13].coordinates).y + ')',
+      );
+
+      const endFlag2 = g.append('text')
+        .style('font-family', 'FontAwesome')
+        .attr('font-size', '30px')
+        .text('\uf11e');
+
+      endFlag2.attr('transform', d => 'translate('
+        + this.map.latLngToLayerPoint(this.centreCoordinates[16].coordinates).x + ','
+        + this.map.latLngToLayerPoint(this.centreCoordinates[16].coordinates).y + ')',
+      );
+
+      const lines = g.selectAll('line')
+        .data(this.lineData)
+        .enter().append('line')
+        .attr('x1', d => this.map.latLngToLayerPoint(d.fromCoords).x)
+        .attr('x2', d => this.map.latLngToLayerPoint(d.toCoords).x)
+        .attr('y1', d => this.map.latLngToLayerPoint(d.fromCoords).y)
+        .attr('y2', d => this.map.latLngToLayerPoint(d.toCoords).y)
+        .style('stroke-width', 1)
+        .style('stroke', 'black');
+
+      const pointsToPlot = [];
+      this.centreCoordinates.forEach(item => {
+        pointsToPlot.push({
+          xCoordinate: this.map.latLngToLayerPoint(item.coordinates).x,
+          yCoordinate: this.map.latLngToLayerPoint(item.coordinates).y,
+          colour: 'brown',
+          label: item.label,
+          radius: 4,
+        });
+      });
+
+      progressByTeam.forEach(item => {
+        const teamCoordinates = findTeamCoordinates(this.lineData, item.progress);
+        pointsToPlot.push({
+          xCoordinate: this.map.latLngToLayerPoint(L.latLng(teamCoordinates[0], teamCoordinates[1])).x,
+          yCoordinate: this.map.latLngToLayerPoint(L.latLng(teamCoordinates[0], teamCoordinates[1])).y,
+          colour: item.colour,
+          label: item.name,
+          radius: 6,
+        });
+      });
+
+      g.selectAll('.circle')
+        .data(pointsToPlot)
+        .enter().append('circle')
+        .style('stroke', 'black')
+        .style('opacity', .6)
+        .style('fill', d => d.colour)
+        .attr('r', d => d.radius)
+        .attr('cx', d => d.xCoordinate)
+        .attr('cy', d => d.yCoordinate);
+    };
+    mapUpdate();
   }
-
-  // const mapRender = () => {
-  //   map.setView([0, 0], 1)
-  //
-  //   const bounds = getBounds(newMapData);
-  //
-  //   console.log(bounds);
-  //
-  //   map.fitBounds(bounds);
-  // };
-
-  // scope.$watch('val', (newVal, oldVal) => {
-  //   if (newVal) {
-  mapUpdate();
-  // mapRender()
-
-  setTimeout(() => {
-    this.map.invalidateSize();
-  }, 0);
-
-
-}
 }
