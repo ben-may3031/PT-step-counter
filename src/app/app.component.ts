@@ -32,6 +32,7 @@ export class AppComponent {
   targetDistance: number;
   targetNumberOfStepsForTeam: number;
   maxProgress: number;
+  targetCentreIndex: number;
 
   constructor(db: AngularFireDatabase) {
     // Watch for updates in the database and run onUpdate if watch triggered
@@ -74,16 +75,18 @@ export class AppComponent {
       {coordinates: [54.5919899, -5.9403295], label: 'Belfast'},
     ];
 
+    // Set the index for the centre to be considered the target centre (currently
+    // Edniburgh)
+    this.targetCentreIndex = 13;
+
     // Set the distance along the route corresponding to target progress (currently
     // distance to Edinburgh (in GPS coordinate space))
+    // TODO: The targetDistance can be evaluated from the target centre index. This
+    // should be done.
     this.targetDistance = 15.93487645379707;
 
     // Set the target number of steps for a team
     this.targetNumberOfStepsForTeam = 1680000;
-
-    // Set the maximum progress proportion that can be shown for a team on the map
-    // This is set to stop the team markers overshooting the final centre on the route
-    this.maxProgress = 1.4263;
   }
 
   onUpdate(data) {
@@ -173,6 +176,12 @@ export class AppComponent {
           toCoords: toCoords,
           progress: cumulativeDistanceCovered / this.targetDistance,
         });
+
+        if (index = this.centreCoordinates.length - 1) {
+          // Set the maximum progress proportion that can be shown for a team on the map
+          // This is set to stop the team markers overshooting the final centre on the route
+          this.maxProgress = cumulativeDistanceCovered / this.targetDistance;
+        }
       }
     });
 
@@ -193,7 +202,11 @@ export class AppComponent {
     // Evaluate the GPS coordinates (used to plot a team marker) given line data for a map
     // and a (team) progress proportion
     const findTeamCoordinates = (lineData, progress) => {
-      const upperIndex = lineData.findIndex(item => item.progress > progress);
+      // Find the index of the lineData element having progress greater than or equal to
+      // the team progress (argument), then find the progress at the to and from points for the
+      // corresponding lineData element (with the from progress found from the previous
+      // lineData element or set to 0 if no previous).
+      const upperIndex = lineData.findIndex(item => item.progress >= progress);
       let lowerProgress;
       if (upperIndex === 0) {
         lowerProgress = 0;
@@ -201,14 +214,26 @@ export class AppComponent {
         lowerProgress = lineData[upperIndex - 1].progress;
       }
       const higherProgress = lineData[upperIndex].progress;
+
+      // The team progress will be between of equal to the two progresses found, so
+      // the team point should be plotted beteen the two lineData point coordinates.
+      // The proportion along the line the team point should be plotted is the difference
+      // between the team progress and the from point progress as a proportion of the
+      // difference betwen the to and from point progresses. This proportion is found,
+      // along with the corresponding team coordinates, in the following.
       const sectionLength = higherProgress - lowerProgress;
       const distanceAlongSection = progress - lowerProgress;
+      // Evaluate team progress proportion along line section
       const sectionProgress = distanceAlongSection / sectionLength;
+      // Evaluate vector for difference between to and from coordinates
       const diffCoords = [
         lineData[upperIndex].toCoords[0] - lineData[upperIndex].fromCoords[0],
         lineData[upperIndex].toCoords[1] - lineData[upperIndex].fromCoords[1],
       ];
+      // Scale the difference vector by the line section progress proportion for the team
       const scaledCoords = diffCoords.map(item => item * sectionProgress);
+      // Add the scaled difference vector to the lineData from coordinates to find the
+      // team coordinates
       const output = Object.assign({}, lineData[upperIndex].fromCoords);
       scaledCoords.forEach((item, index) => {
         output[index] += item;
@@ -217,9 +242,12 @@ export class AppComponent {
       return output;
     };
 
+    // Function used to plot the map, including start and end flags, centre points, route
+    // lines and team points
     const mapUpdate = () => {
       let element;
 
+      // If a map container exists then remove the map and it's contents
       if (document.getElementsByClassName('leaflet-container').length > 0) {
         this.map.remove();
 
@@ -227,56 +255,61 @@ export class AppComponent {
         d3.select(element).selectAll('*').remove();
       }
 
+      // Initialize the map (using Leaflet) with centre and zoom suitable to show UK map
       element = document.getElementById('leafletmap');
-
       this.map = new L.map(element).setView([55, -4], 6);
       const mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; ' + mapLink + ' Contributors',
-        // maxZoom: 180,
       }).addTo(this.map);
-
+      // Disable map scrolling, zooming and dragging
       this.map.scrollWheelZoom.disable();
       this.map.touchZoom.disable();
       this.map.dragging.disable();
-
       // Initialize the SVG layer
       this.map._initPathRoot();
-
       // We simply pick up the SVG from the map object
       const svg = d3.select(element).select('svg');
       const g = svg.append('g');
 
+      // Plot start flag at SVG origin (using font awesome flag icon)
       const startFlag = g.append('text')
         .style('font-family', 'FontAwesome')
         .attr('font-size', '30px')
         .text('\uf11e');
 
+      // Shift start flag to location of first centre of route
       startFlag.attr('transform', d => 'translate('
         + this.map.latLngToLayerPoint(this.centreCoordinates[0].coordinates).x + ','
         + this.map.latLngToLayerPoint(this.centreCoordinates[0].coordinates).y + ')',
       );
 
+      // Plot end flag at SVG origin (using font awesome flag icon)
       const endFlag = g.append('text')
         .style('font-family', 'FontAwesome')
         .attr('font-size', '30px')
         .text('\uf11e');
 
+      // Shift end flag to location of target centre
       endFlag.attr('transform', d => 'translate('
-        + this.map.latLngToLayerPoint(this.centreCoordinates[13].coordinates).x + ','
-        + this.map.latLngToLayerPoint(this.centreCoordinates[13].coordinates).y + ')',
+        + this.map.latLngToLayerPoint(this.centreCoordinates[this.targetCentreIndex].coordinates).x + ','
+        + this.map.latLngToLayerPoint(this.centreCoordinates[this.targetCentreIndex].coordinates).y + ')',
       );
 
+      // Plot second end flag at SVG origin (using font awesome flag icon)
       const endFlag2 = g.append('text')
         .style('font-family', 'FontAwesome')
         .attr('font-size', '30px')
         .text('\uf11e');
 
+      // Shift second end flag to location of last centre of route
+      const lastCentreIndex = this.centreCoordinates.length - 1;
       endFlag2.attr('transform', d => 'translate('
-        + this.map.latLngToLayerPoint(this.centreCoordinates[16].coordinates).x + ','
-        + this.map.latLngToLayerPoint(this.centreCoordinates[16].coordinates).y + ')',
+        + this.map.latLngToLayerPoint(this.centreCoordinates[lastCentreIndex].coordinates).x + ','
+        + this.map.latLngToLayerPoint(this.centreCoordinates[lastCentreIndex].coordinates).y + ')',
       );
 
+      // Plot the line sections (using this.lineData)
       const lines = g.selectAll('line')
         .data(this.lineData)
         .enter().append('line')
@@ -287,6 +320,8 @@ export class AppComponent {
         .style('stroke-width', 1)
         .style('stroke', 'black');
 
+      // Find the SVG coordinates (using GPS coordinates) for the centre points
+      // Also, set the colour and radii for the points
       const pointsToPlot = [];
       this.centreCoordinates.forEach(item => {
         pointsToPlot.push({
@@ -298,6 +333,8 @@ export class AppComponent {
         });
       });
 
+      // Find the SVG coordinates (using GPS coordinates) for the team points
+      // Also, set the colour and radii for the points
       progressByTeam.forEach(item => {
         const teamCoordinates = findTeamCoordinates(this.lineData, item.progress);
         pointsToPlot.push({
@@ -309,6 +346,7 @@ export class AppComponent {
         });
       });
 
+      // Plot team and centre points
       g.selectAll('.circle')
         .data(pointsToPlot)
         .enter().append('circle')
@@ -319,6 +357,8 @@ export class AppComponent {
         .attr('cx', d => d.xCoordinate)
         .attr('cy', d => d.yCoordinate);
     };
+
+    // Call function to plot map
     mapUpdate();
   }
 }
