@@ -15,12 +15,7 @@ import { AppComponent } from './app.component';
 
 
 export const firebaseConfig = {
-  apiKey: 'AIzaSyAiT0W4hDXGkUuw8juSgXFw_Tg3EOzeBlE',
-  authDomain: 'testpt-df641.firebaseapp.com',
-  databaseURL: 'https://testpt-df641.firebaseio.com',
-  projectId: 'testpt-df641',
-  storageBucket: 'testpt-df641.appspot.com',
-  messagingSenderId: '1039827448088'
+  // Paste the config here
 };
 
 @NgModule({

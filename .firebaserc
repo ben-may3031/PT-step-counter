@@ -1,5 +1,5 @@
 {
   "projects": {
-    "default": "testpt-df641"
+    "default": "<YOUR FIREBASE PROJECT ID>"
   }
 }
