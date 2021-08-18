@@ -21,7 +21,7 @@ import * as d3 from 'd3';
 export class AppComponent {
   title = 'app';
 
-  items: Observable<any[]>;
+  items: any;
   data: any;
 
   teamDataSorted: any;
@@ -90,21 +90,21 @@ export class AppComponent {
   }
 
   onUpdate(data) {
+    console.info(data)
     // data is an array of arrays, with the first array being an array of headers and
     // all others being an array of values with each element associated with the header
     // having the same index. We are interested in the "Team", "Steps" and "Donation"
     // fields. The indices for these fields are found here using the header array
     const headers = data[0];
-    const teamIndex = headers.indexOf('Team');
+    const teamIndex = headers.indexOf('Participant');
     const stepIndex = headers.indexOf('Steps');
-    const fundIndex = headers.indexOf('Donation');
 
     // Generate a list of unique and non-blank team names appearing in the data.
     // Note that the header entry is excluded by excluding any value equal to "Team",
     // therefore a team cannot have the name "Team"
     const teamNames = [];
     data.map(x => {
-       if (!teamNames.includes(x[teamIndex]) && x[teamIndex] !== 'Team' && x[teamIndex].trim() !== '') {
+       if (!teamNames.includes(x[teamIndex]) && x[teamIndex] !== 'Participant' && x[teamIndex].trim() !== '') {
         teamNames.push(x[teamIndex]);
        }
     });
@@ -128,17 +128,6 @@ export class AppComponent {
               }
           }
           return stepCounter;
-        }()),
-        // Loop over all database records and increment by the donation amount for the
-        // record if the team is the team considered in the outer loop
-        funds: (function() {
-          let fundCounter = 0;
-          for (const response of data) {
-            if (team === response[teamIndex]) {
-              fundCounter = fundCounter + response[fundIndex];
-            }
-          }
-          return fundCounter;
         }()),
       });
     }

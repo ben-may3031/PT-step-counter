@@ -15,7 +15,13 @@ import { AppComponent } from './app.component';
 
 
 export const firebaseConfig = {
-  // Paste the config here
+  apiKey: "AIzaSyBoyvJNfr4kV3seqOyI1_Jw7HMdebtMGd0",
+  authDomain: "wazoku-steps.firebaseapp.com",
+  databaseURL: "https://wazoku-steps-default-rtdb.firebaseio.com",
+  projectId: "wazoku-steps",
+  storageBucket: "wazoku-steps.appspot.com",
+  messagingSenderId: "315198827013",
+  appId: "1:315198827013:web:a8cf36dd24428db213ca6c"
 };
 
 @NgModule({
