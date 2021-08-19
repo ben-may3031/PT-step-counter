@@ -56,37 +56,27 @@ export class AppComponent {
 
     // Set GPS coordinates and order for PT centres to be shown on map
     this.centreCoordinates = [
-      {coordinates: [51.3923509, 0.5266571], label: 'Chatham Centre'},
-      {coordinates: [51.5186418, -0.0853988], label: 'London'},
-      {coordinates: [50.8984317, -1.4037609], label: 'Southampton'},
-      {coordinates: [51.4525093, -2.5881386], label: 'Bristol'},
-      {coordinates: [51.4752889, -3.1558228], label: 'Cardiff'},
-      {coordinates: [52.475385, -1.8845159], label: 'Birmingham'},
-      {coordinates: [52.9682854, -1.1602592], label: 'Nottingham'},
-      {coordinates: [53.3825092, -1.4725113], label: 'Sheffield'},
-      {coordinates: [53.4031032, -2.9765692], label: 'Liverpool'},
-      {coordinates: [53.4601658, -2.276423], label: 'Manchester'},
-      {coordinates: [53.7984933, -1.5454026], label: 'Leeds'},
-      {coordinates: [54.5832051, -1.2314987], label: 'Middlesborough'},
-      {coordinates: [54.974209, -1.67762], label: 'Newcastle'},
-      {coordinates: [55.9747091, -3.1822447], label: 'Edinburgh'},
-      {coordinates: [56.4689391, -2.9553223], label: 'Dundee'},
-      {coordinates: [55.8542723, -4.2577225], label: 'Glasgow'},
-      {coordinates: [54.5919899, -5.9403295], label: 'Belfast'},
+      {coordinates: [55.671335, 12.5851452], label: 'Copenhagen'},
+      {coordinates: [51.509078, -0.085562], label: 'London'},
+      {coordinates: [51.453871, -2.599883], label: 'Bristol'},
+      {coordinates: [39.169567, -75.545001], label: 'Delaware'},
     ];
 
     // Set the index for the centre to be considered the target centre (currently
     // Edniburgh)
-    this.targetCentreIndex = 13;
+    this.targetCentreIndex = 3;
 
     // Set the distance along the route corresponding to target progress (currently
     // distance to Edinburgh (in GPS coordinate space))
     // TODO: The targetDistance can be evaluated from the target centre index. This
     // should be done.
-    this.targetDistance = 15.93487645379707;
+    this.targetDistance = 89.8240174046766;
+
+    const stepLengthInMetres = 0.65
+    const numberOfMetresToTravel = 6747000
 
     // Set the target number of steps for a team
-    this.targetNumberOfStepsForTeam = 1680000;
+    this.targetNumberOfStepsForTeam = numberOfMetresToTravel / stepLengthInMetres;
   }
 
   onUpdate(data) {
@@ -157,7 +147,7 @@ export class AppComponent {
         const toCoords = marker.coordinates;
         // Increment cumulative progress by the length of the line between the from and to
         // coordinates
-        cumulativeDistanceCovered += Math.pow(toCoords[0] - fromCoords[0], 2) + Math.pow(toCoords[1] - fromCoords[1], 2);
+        cumulativeDistanceCovered += Math.sqrt(Math.pow(toCoords[0] - fromCoords[0], 2) + Math.pow(toCoords[1] - fromCoords[1], 2));
         // Store from coordinates, to coordinates, and cumulative progress on route up to
         // to coordinates as a proportion of cumulative progress up to Edinburgh
         this.lineData.push({
@@ -179,14 +169,17 @@ export class AppComponent {
     // (which is currently the progress along the map route to Belfast, the final centre
     // of the route), and the colour to be associated with the team in the map.
     // The array is set to contain data for the top ten teams by total number of steps
-    const progressByTeam = [];
-    teamDataSorted.slice(0, 10).forEach((item, index) => {
-      progressByTeam.push({
-        name: item.name,
-        progress: Math.min(this.maxProgress, item.steps / this.targetNumberOfStepsForTeam),
-        colour: this.colourArray[index],
-      });
-    });
+    let stepsSum = 0;
+
+    teamDataSorted.forEach((item, index) => {
+      stepsSum += item.steps
+    })
+
+    const progressByTeam = [{
+      name: 'Team Wazoku',
+      progress: Math.min(this.maxProgress, stepsSum / this.targetNumberOfStepsForTeam),
+      colour: '#080A27',
+    }]
 
     // Evaluate the GPS coordinates (used to plot a team marker) given line data for a map
     // and a (team) progress proportion
@@ -246,7 +239,7 @@ export class AppComponent {
 
       // Initialize the map (using Leaflet) with centre and zoom suitable to show UK map
       element = document.getElementById('leafletmap');
-      this.map = new L.map(element).setView([55, -4], 6);
+      this.map = new L.map(element).setView([40.91, -35.95], 3);
       const mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; ' + mapLink + ' Contributors',
