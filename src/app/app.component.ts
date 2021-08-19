@@ -324,7 +324,7 @@ export class AppComponent {
           yCoordinate: this.map.latLngToLayerPoint(L.latLng(teamCoordinates[0], teamCoordinates[1])).y,
           colour: item.colour,
           label: item.name,
-          radius: 6,
+          radius: 10,
         });
       });
 
