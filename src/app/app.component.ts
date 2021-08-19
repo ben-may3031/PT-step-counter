@@ -42,16 +42,9 @@ export class AppComponent {
     // Set the colours associated with the top 10 teams (used for the map and the
     // leaderboard)
     this.colourArray = [
-      '#49C8F7',
-      '#FF6E5B',
-      '#EDAB72',
-      '#7F73CA',
-      '#E36F86',
-      '#2976A3',
-      '#17A152',
-      '#ECD771',
-      '#A7CC4C',
-      '#2FCBC1',
+      '#D1BF3B',
+      '#979596',
+      '#AE822C',
     ];
 
     // Set GPS coordinates and order for PT centres to be shown on map
