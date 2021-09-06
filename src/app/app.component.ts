@@ -52,17 +52,24 @@ export class AppComponent {
       {coordinates: [20.593684, 78.96288], label: 'India'},
       {coordinates: [42.315407, 43.35689199999999], label: 'Georgia'},
       {coordinates: [42.733883, 25.48583], label: 'Bulgaria'},
-      {coordinates: [50.503887, 4.469936], label: 'Belgium'},
-      {coordinates: [41.9027835, 12.4963655], label: 'Rome'},
-      {coordinates: [52.056736, 1.14822], label: 'Ipswich'},
-      // {coordinates: [xxx, xxx], label: 'xxx'},
-      // {coordinates: [xxx, xxx], label: 'xxx'},
-      {coordinates: [39.169567, -75.545001], label: 'Delaware'},
       {coordinates: [55.671335, 12.5851452], label: 'Copenhagen'},
-      {coordinates: [51.453871, -2.599883], label: 'Bristol'},
+      {coordinates: [41.9027835, 12.4963655], label: 'Rome'},
+      {coordinates: [50.503887, 4.469936], label: 'Belgium'},
+      {coordinates: [52.056736, 1.14822], label: 'Ipswich'},
+      {coordinates: [50.9085955, 0.2494166], label: 'East Sussex'},
       {coordinates: [51.509078, -0.085562], label: 'London'},
-
-
+      {coordinates: [52.370878, -1.265032], label: 'Rugby'},
+      {coordinates: [52.48624299999999, -1.890401], label: 'Birmingham'},
+      {coordinates: [51.453871, -2.599883], label: 'Bristol'},
+      {coordinates: [53.4083714, -2.9915726], label: 'Liverpool'},
+      {coordinates: [50.26604709999999, -5.0527125], label: 'Cornwall'},
+      {coordinates: [40.7127753, -74.0059728], label: 'New York'},
+      {coordinates: [xxx, xxx], label: 'xxx'},
+      {coordinates: [xxx, xxx], label: 'xxx'},
+      {coordinates: [xxx, xxx], label: 'xxx'},
+      {coordinates: [xxx, xxx], label: 'xxx'},
+      {coordinates: [xxx, xxx], label: 'xxx'},
+      {coordinates: [39.169567, -75.545001], label: 'Delaware'},
     ];
 
     // Set the index for the centre to be considered the target centre (currently
