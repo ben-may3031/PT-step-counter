@@ -50,15 +50,24 @@ export class AppComponent {
     // Set GPS coordinates for locations
     this.centreCoordinates = [
       {coordinates: [20.593684, 78.96288], label: 'India'},
-      {coordinates: [55.671335, 12.5851452], label: 'Copenhagen'},
-      {coordinates: [51.509078, -0.085562], label: 'London'},
-      {coordinates: [51.453871, -2.599883], label: 'Bristol'},
+      {coordinates: [42.315407, 43.35689199999999], label: 'Georgia'},
+      {coordinates: [42.733883, 25.48583], label: 'Bulgaria'},
+      {coordinates: [50.503887, 4.469936], label: 'Belgium'},
+      {coordinates: [41.9027835, 12.4963655], label: 'Rome'},
+      {coordinates: [52.056736, 1.14822], label: 'Ipswich'},
+      {coordinates: [xxx, xxx], label: 'xxx'},
+      {coordinates: [xxx, xxx], label: 'xxx'},
       {coordinates: [39.169567, -75.545001], label: 'Delaware'},
+      {coordinates: [55.671335, 12.5851452], label: 'Copenhagen'},
+      {coordinates: [51.453871, -2.599883], label: 'Bristol'},
+      {coordinates: [51.509078, -0.085562], label: 'London'},
+
+
     ];
 
     // Set the index for the centre to be considered the target centre (currently
     // Edniburgh)
-    this.targetCentreIndex = 4;
+    this.targetCentreIndex = this.centreCoordinates.length - 1;
 
     // Set the distance along the route corresponding to target progress (currently
     // distance to Edinburgh (in GPS coordinate space))
