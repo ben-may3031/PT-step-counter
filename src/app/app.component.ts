@@ -47,8 +47,9 @@ export class AppComponent {
       '#AE822C',
     ];
 
-    // Set GPS coordinates and order for PT centres to be shown on map
+    // Set GPS coordinates for locations
     this.centreCoordinates = [
+      {coordinates: [20.593684, 78.96288], label: 'India'},
       {coordinates: [55.671335, 12.5851452], label: 'Copenhagen'},
       {coordinates: [51.509078, -0.085562], label: 'London'},
       {coordinates: [51.453871, -2.599883], label: 'Bristol'},
@@ -57,7 +58,7 @@ export class AppComponent {
 
     // Set the index for the centre to be considered the target centre (currently
     // Edniburgh)
-    this.targetCentreIndex = 3;
+    this.targetCentreIndex = 4;
 
     // Set the distance along the route corresponding to target progress (currently
     // distance to Edinburgh (in GPS coordinate space))
@@ -241,6 +242,10 @@ export class AppComponent {
       this.map.scrollWheelZoom.disable();
       this.map.touchZoom.disable();
       this.map.dragging.disable();
+      this.map.doubleClickZoom.disable();
+      this.map.boxZoom.disable();
+      this.map.keyboard.disable();
+      this.map.zoomControl.remove();
       // Initialize the SVG layer
       this.map._initPathRoot();
       // We simply pick up the SVG from the map object
