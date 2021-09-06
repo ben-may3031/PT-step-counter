@@ -63,13 +63,13 @@ export class AppComponent {
       {coordinates: [51.453871, -2.599883], label: 'Bristol'},
       {coordinates: [53.4083714, -2.9915726], label: 'Liverpool'},
       {coordinates: [50.26604709999999, -5.0527125], label: 'Cornwall'},
+      {coordinates: [42.4072107, -71.3824374], label: 'Massachusetts'},
       {coordinates: [40.7127753, -74.0059728], label: 'New York'},
-      {coordinates: [xxx, xxx], label: 'xxx'},
-      {coordinates: [xxx, xxx], label: 'xxx'},
-      {coordinates: [xxx, xxx], label: 'xxx'},
-      {coordinates: [xxx, xxx], label: 'xxx'},
-      {coordinates: [xxx, xxx], label: 'xxx'},
       {coordinates: [39.169567, -75.545001], label: 'Delaware'},
+      {coordinates: [38.9071923, -77.03687069999999], label: 'Washington DC'},
+      {coordinates: [46.729553, -94.6858998], label: 'Minnesota'},
+      {coordinates: [31.9685988, -99.9018131], label: 'Texas'},
+      {coordinates: [39.5500507, -105.7820674], label: 'Colorado'},
     ];
 
     // Set the index for the centre to be considered the target centre (currently
