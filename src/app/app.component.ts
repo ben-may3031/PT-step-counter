@@ -233,7 +233,7 @@ export class AppComponent {
 
       // Initialize the map (using Leaflet) with centre and zoom suitable to show UK map
       element = document.getElementById('leafletmap');
-      this.map = new L.map(element).setView([40.91, -35.95], 3);
+      this.map = new L.map(element).setView([40.91, -35.95], 2);
       const mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; ' + mapLink + ' Contributors',
@@ -245,7 +245,7 @@ export class AppComponent {
       this.map.doubleClickZoom.disable();
       this.map.boxZoom.disable();
       this.map.keyboard.disable();
-      this.map.zoomControl.remove();
+      this.map.removeControl(this.map.zoomControl);
       // Initialize the SVG layer
       this.map._initPathRoot();
       // We simply pick up the SVG from the map object
