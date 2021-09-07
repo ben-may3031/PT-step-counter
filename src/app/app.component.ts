@@ -29,10 +29,11 @@ export class AppComponent {
   colourArray: any;
   centreCoordinates: any;
   lineData: any;
-  targetDistance: number;
+  targetGPSDistance: number;
   targetNumberOfStepsForTeam: number;
   maxProgress: number;
   targetCentreIndex: number;
+  stepLengthInMetres: number;
 
   constructor(db: AngularFireDatabase) {
     // Watch for updates in the database and run onUpdate if watch triggered
@@ -42,62 +43,48 @@ export class AppComponent {
     // Set the colours associated with the top 10 teams (used for the map and the
     // leaderboard)
     this.colourArray = [
-      '#49C8F7',
-      '#FF6E5B',
-      '#EDAB72',
-      '#7F73CA',
-      '#E36F86',
-      '#2976A3',
-      '#17A152',
-      '#ECD771',
-      '#A7CC4C',
-      '#2FCBC1',
+      '#D1BF3B',
+      '#979596',
+      '#AE822C',
     ];
 
-    // Set GPS coordinates and order for PT centres to be shown on map
+    // Set GPS coordinates for locations
     this.centreCoordinates = [
-      {coordinates: [51.3923509, 0.5266571], label: 'Chatham Centre'},
-      {coordinates: [51.5186418, -0.0853988], label: 'London'},
-      {coordinates: [50.8984317, -1.4037609], label: 'Southampton'},
-      {coordinates: [51.4525093, -2.5881386], label: 'Bristol'},
-      {coordinates: [51.4752889, -3.1558228], label: 'Cardiff'},
-      {coordinates: [52.475385, -1.8845159], label: 'Birmingham'},
-      {coordinates: [52.9682854, -1.1602592], label: 'Nottingham'},
-      {coordinates: [53.3825092, -1.4725113], label: 'Sheffield'},
-      {coordinates: [53.4031032, -2.9765692], label: 'Liverpool'},
-      {coordinates: [53.4601658, -2.276423], label: 'Manchester'},
-      {coordinates: [53.7984933, -1.5454026], label: 'Leeds'},
-      {coordinates: [54.5832051, -1.2314987], label: 'Middlesborough'},
-      {coordinates: [54.974209, -1.67762], label: 'Newcastle'},
-      {coordinates: [55.9747091, -3.1822447], label: 'Edinburgh'},
-      {coordinates: [56.4689391, -2.9553223], label: 'Dundee'},
-      {coordinates: [55.8542723, -4.2577225], label: 'Glasgow'},
-      {coordinates: [54.5919899, -5.9403295], label: 'Belfast'},
+      {coordinates: [20.593684, 78.96288], label: 'India'},
+      {coordinates: [42.315407, 43.35689199999999], label: 'Georgia'},
+      {coordinates: [42.733883, 25.48583], label: 'Bulgaria'},
+      {coordinates: [55.671335, 12.5851452], label: 'Copenhagen'},
+      {coordinates: [41.9027835, 12.4963655], label: 'Rome'},
+      {coordinates: [50.503887, 4.469936], label: 'Belgium'},
+      {coordinates: [52.056736, 1.14822], label: 'Ipswich'},
+      {coordinates: [50.9085955, 0.2494166], label: 'East Sussex'},
+      {coordinates: [51.509078, -0.085562], label: 'London'},
+      {coordinates: [52.370878, -1.265032], label: 'Rugby'},
+      {coordinates: [52.48624299999999, -1.890401], label: 'Birmingham'},
+      {coordinates: [51.453871, -2.599883], label: 'Bristol'},
+      {coordinates: [53.4083714, -2.9915726], label: 'Liverpool'},
+      {coordinates: [50.26604709999999, -5.0527125], label: 'Cornwall'},
+      {coordinates: [42.4072107, -71.3824374], label: 'Massachusetts'},
+      {coordinates: [40.7127753, -74.0059728], label: 'New York'},
+      {coordinates: [39.169567, -75.545001], label: 'Delaware'},
+      {coordinates: [38.9071923, -77.03687069999999], label: 'Washington DC'},
+      {coordinates: [46.729553, -94.6858998], label: 'Minnesota'},
+      {coordinates: [31.9685988, -99.9018131], label: 'Texas'},
+      {coordinates: [39.5500507, -105.7820674], label: 'Colorado'},
     ];
 
-    // Set the index for the centre to be considered the target centre (currently
-    // Edniburgh)
-    this.targetCentreIndex = 13;
-
-    // Set the distance along the route corresponding to target progress (currently
-    // distance to Edinburgh (in GPS coordinate space))
-    // TODO: The targetDistance can be evaluated from the target centre index. This
-    // should be done.
-    this.targetDistance = 15.93487645379707;
-
-    // Set the target number of steps for a team
-    this.targetNumberOfStepsForTeam = 1680000;
+    this.stepLengthInMetres = 0.65
   }
 
   onUpdate(data) {
-    console.info(data)
     // data is an array of arrays, with the first array being an array of headers and
     // all others being an array of values with each element associated with the header
     // having the same index. We are interested in the "Team", "Steps" and "Donation"
     // fields. The indices for these fields are found here using the header array
     const headers = data[0];
     const teamIndex = headers.indexOf('Participant');
-    const stepIndex = headers.indexOf('Steps');
+    const amountIndex = headers.indexOf('Amount');
+    const unitIndex = headers.indexOf('Unit');
 
     // Generate a list of unique and non-blank team names appearing in the data.
     // Note that the header entry is excluded by excluding any value equal to "Team",
@@ -108,6 +95,8 @@ export class AppComponent {
         teamNames.push(x[teamIndex]);
        }
     });
+
+    const stepLengthInMetres = this.stepLengthInMetres
 
     // Generate an array of team data, storing the team name, the total amount of steps
     // the team has entered over all database records associated with the team, and the
@@ -124,7 +113,13 @@ export class AppComponent {
           let stepCounter = 0;
           for (const response of data) {
               if (team === response[teamIndex]) {
-                stepCounter = stepCounter + response[stepIndex];
+                if (response[unitIndex] == 'Steps') {
+                  stepCounter += response[amountIndex]
+                } else if (response[unitIndex] == 'Kilometres') {
+                  stepCounter += 1000 * response[amountIndex] / stepLengthInMetres
+                } else if (response[unitIndex] == 'Miles') {
+                  stepCounter += (1000 / 0.621371) * response[amountIndex] / stepLengthInMetres
+                }
               }
           }
           return stepCounter;
@@ -157,19 +152,19 @@ export class AppComponent {
         const toCoords = marker.coordinates;
         // Increment cumulative progress by the length of the line between the from and to
         // coordinates
-        cumulativeDistanceCovered += Math.pow(toCoords[0] - fromCoords[0], 2) + Math.pow(toCoords[1] - fromCoords[1], 2);
+        cumulativeDistanceCovered += Math.sqrt(Math.pow(toCoords[0] - fromCoords[0], 2) + Math.pow(toCoords[1] - fromCoords[1], 2));
         // Store from coordinates, to coordinates, and cumulative progress on route up to
         // to coordinates as a proportion of cumulative progress up to Edinburgh
         this.lineData.push({
           fromCoords: fromCoords,
           toCoords: toCoords,
-          progress: cumulativeDistanceCovered / this.targetDistance,
+          progress: cumulativeDistanceCovered / this.targetGPSDistance,
         });
 
         if (index = this.centreCoordinates.length - 1) {
           // Set the maximum progress proportion that can be shown for a team on the map
           // This is set to stop the team markers overshooting the final centre on the route
-          this.maxProgress = cumulativeDistanceCovered / this.targetDistance;
+          this.maxProgress = cumulativeDistanceCovered / this.targetGPSDistance;
         }
       }
     });
@@ -179,14 +174,17 @@ export class AppComponent {
     // (which is currently the progress along the map route to Belfast, the final centre
     // of the route), and the colour to be associated with the team in the map.
     // The array is set to contain data for the top ten teams by total number of steps
-    const progressByTeam = [];
-    teamDataSorted.slice(0, 10).forEach((item, index) => {
-      progressByTeam.push({
-        name: item.name,
-        progress: Math.min(this.maxProgress, item.steps / this.targetNumberOfStepsForTeam),
-        colour: this.colourArray[index],
-      });
-    });
+    let stepsSum = 0;
+
+    teamDataSorted.forEach((item, index) => {
+      stepsSum += item.steps
+    })
+
+    const progressByTeam = [{
+      name: 'Team Wazoku',
+      progress: Math.min(this.maxProgress, stepsSum / this.targetNumberOfStepsForTeam),
+      colour: '#080A27',
+    }]
 
     // Evaluate the GPS coordinates (used to plot a team marker) given line data for a map
     // and a (team) progress proportion
@@ -246,7 +244,7 @@ export class AppComponent {
 
       // Initialize the map (using Leaflet) with centre and zoom suitable to show UK map
       element = document.getElementById('leafletmap');
-      this.map = new L.map(element).setView([55, -4], 6);
+      this.map = new L.map(element).setView([40.91, 0], 2);
       const mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; ' + mapLink + ' Contributors',
@@ -255,6 +253,10 @@ export class AppComponent {
       this.map.scrollWheelZoom.disable();
       this.map.touchZoom.disable();
       this.map.dragging.disable();
+      this.map.doubleClickZoom.disable();
+      this.map.boxZoom.disable();
+      this.map.keyboard.disable();
+      this.map.removeControl(this.map.zoomControl);
       // Initialize the SVG layer
       this.map._initPathRoot();
       // We simply pick up the SVG from the map object
@@ -265,24 +267,12 @@ export class AppComponent {
       const startFlag = g.append('text')
         .style('font-family', 'FontAwesome')
         .attr('font-size', '30px')
-        .text('\uf11e');
+        .text('\uf024');
 
       // Shift start flag to location of first centre of route
       startFlag.attr('transform', d => 'translate('
         + this.map.latLngToLayerPoint(this.centreCoordinates[0].coordinates).x + ','
         + this.map.latLngToLayerPoint(this.centreCoordinates[0].coordinates).y + ')',
-      );
-
-      // Plot end flag at SVG origin (using font awesome flag icon)
-      const endFlag = g.append('text')
-        .style('font-family', 'FontAwesome')
-        .attr('font-size', '30px')
-        .text('\uf11e');
-
-      // Shift end flag to location of target centre
-      endFlag.attr('transform', d => 'translate('
-        + this.map.latLngToLayerPoint(this.centreCoordinates[this.targetCentreIndex].coordinates).x + ','
-        + this.map.latLngToLayerPoint(this.centreCoordinates[this.targetCentreIndex].coordinates).y + ')',
       );
 
       // Plot second end flag at SVG origin (using font awesome flag icon)
@@ -331,7 +321,7 @@ export class AppComponent {
           yCoordinate: this.map.latLngToLayerPoint(L.latLng(teamCoordinates[0], teamCoordinates[1])).y,
           colour: item.colour,
           label: item.name,
-          radius: 6,
+          radius: 10,
         });
       });
 
@@ -349,5 +339,50 @@ export class AppComponent {
 
     // Call function to plot map
     mapUpdate();
+  }
+
+  getDistanceBetweenLocations(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // metres
+    const φ1 = lat1 * Math.PI/180; // φ, λ in radians
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c; // in metres
+  }
+
+  getGPSDistanceBetweenLocations(lat1, lon1, lat2, lon2) {
+    return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lon2 - lon1, 2))
+  }
+
+  ngOnInit() {
+    let numberOfMetresToTravel = 0
+    this.targetGPSDistance = 0
+
+    this.centreCoordinates.forEach((item, index) => {
+      if (index > 0) {
+        numberOfMetresToTravel += this.getDistanceBetweenLocations(
+          this.centreCoordinates[index - 1].coordinates[0],
+          this.centreCoordinates[index - 1].coordinates[1],
+          item.coordinates[0],
+          item.coordinates[1],
+        )
+
+        this.targetGPSDistance += this.getGPSDistanceBetweenLocations(
+          this.centreCoordinates[index - 1].coordinates[0],
+          this.centreCoordinates[index - 1].coordinates[1],
+          item.coordinates[0],
+          item.coordinates[1],
+        )
+      }
+    })
+
+    // Set the target number of steps for a team
+    this.targetNumberOfStepsForTeam = numberOfMetresToTravel / this.stepLengthInMetres;
   }
 }
