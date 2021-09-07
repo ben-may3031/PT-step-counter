@@ -29,10 +29,11 @@ export class AppComponent {
   colourArray: any;
   centreCoordinates: any;
   lineData: any;
-  targetDistance: number;
+  targetGPSDistance: number;
   targetNumberOfStepsForTeam: number;
   maxProgress: number;
   targetCentreIndex: number;
+  stepLengthInMetres: number;
 
   constructor(db: AngularFireDatabase) {
     // Watch for updates in the database and run onUpdate if watch triggered
@@ -72,32 +73,18 @@ export class AppComponent {
       {coordinates: [39.5500507, -105.7820674], label: 'Colorado'},
     ];
 
-    // Set the index for the centre to be considered the target centre (currently
-    // Edniburgh)
-    this.targetCentreIndex = this.centreCoordinates.length - 1;
-
-    // Set the distance along the route corresponding to target progress (currently
-    // distance to Edinburgh (in GPS coordinate space))
-    // TODO: The targetDistance can be evaluated from the target centre index. This
-    // should be done.
-    this.targetDistance = 89.8240174046766;
-
-    const stepLengthInMetres = 0.65
-    const numberOfMetresToTravel = 6747000
-
-    // Set the target number of steps for a team
-    this.targetNumberOfStepsForTeam = numberOfMetresToTravel / stepLengthInMetres;
+    this.stepLengthInMetres = 0.65
   }
 
   onUpdate(data) {
-    console.info(data)
     // data is an array of arrays, with the first array being an array of headers and
     // all others being an array of values with each element associated with the header
     // having the same index. We are interested in the "Team", "Steps" and "Donation"
     // fields. The indices for these fields are found here using the header array
     const headers = data[0];
     const teamIndex = headers.indexOf('Participant');
-    const stepIndex = headers.indexOf('Steps');
+    const amountIndex = headers.indexOf('Amount');
+    const unitIndex = headers.indexOf('Unit');
 
     // Generate a list of unique and non-blank team names appearing in the data.
     // Note that the header entry is excluded by excluding any value equal to "Team",
@@ -108,6 +95,8 @@ export class AppComponent {
         teamNames.push(x[teamIndex]);
        }
     });
+
+    const stepLengthInMetres = this.stepLengthInMetres
 
     // Generate an array of team data, storing the team name, the total amount of steps
     // the team has entered over all database records associated with the team, and the
@@ -124,7 +113,13 @@ export class AppComponent {
           let stepCounter = 0;
           for (const response of data) {
               if (team === response[teamIndex]) {
-                stepCounter = stepCounter + response[stepIndex];
+                if (response[unitIndex] == 'Steps') {
+                  stepCounter += response[amountIndex]
+                } else if (response[unitIndex] == 'Kilometres') {
+                  stepCounter += 1000 * response[amountIndex] / stepLengthInMetres
+                } else if (response[unitIndex] == 'Miles') {
+                  stepCounter += (1000 / 0.621371) * response[amountIndex] / stepLengthInMetres
+                }
               }
           }
           return stepCounter;
@@ -163,13 +158,13 @@ export class AppComponent {
         this.lineData.push({
           fromCoords: fromCoords,
           toCoords: toCoords,
-          progress: cumulativeDistanceCovered / this.targetDistance,
+          progress: cumulativeDistanceCovered / this.targetGPSDistance,
         });
 
         if (index = this.centreCoordinates.length - 1) {
           // Set the maximum progress proportion that can be shown for a team on the map
           // This is set to stop the team markers overshooting the final centre on the route
-          this.maxProgress = cumulativeDistanceCovered / this.targetDistance;
+          this.maxProgress = cumulativeDistanceCovered / this.targetGPSDistance;
         }
       }
     });
@@ -272,24 +267,12 @@ export class AppComponent {
       const startFlag = g.append('text')
         .style('font-family', 'FontAwesome')
         .attr('font-size', '30px')
-        .text('\uf11e');
+        .text('\uf024');
 
       // Shift start flag to location of first centre of route
       startFlag.attr('transform', d => 'translate('
         + this.map.latLngToLayerPoint(this.centreCoordinates[0].coordinates).x + ','
         + this.map.latLngToLayerPoint(this.centreCoordinates[0].coordinates).y + ')',
-      );
-
-      // Plot end flag at SVG origin (using font awesome flag icon)
-      const endFlag = g.append('text')
-        .style('font-family', 'FontAwesome')
-        .attr('font-size', '30px')
-        .text('\uf11e');
-
-      // Shift end flag to location of target centre
-      endFlag.attr('transform', d => 'translate('
-        + this.map.latLngToLayerPoint(this.centreCoordinates[this.targetCentreIndex].coordinates).x + ','
-        + this.map.latLngToLayerPoint(this.centreCoordinates[this.targetCentreIndex].coordinates).y + ')',
       );
 
       // Plot second end flag at SVG origin (using font awesome flag icon)
@@ -356,5 +339,50 @@ export class AppComponent {
 
     // Call function to plot map
     mapUpdate();
+  }
+
+  getDistanceBetweenLocations(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // metres
+    const φ1 = lat1 * Math.PI/180; // φ, λ in radians
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c; // in metres
+  }
+
+  getGPSDistanceBetweenLocations(lat1, lon1, lat2, lon2) {
+    return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lon2 - lon1, 2))
+  }
+
+  ngOnInit() {
+    let numberOfMetresToTravel = 0
+    this.targetGPSDistance = 0
+
+    this.centreCoordinates.forEach((item, index) => {
+      if (index > 0) {
+        numberOfMetresToTravel += this.getDistanceBetweenLocations(
+          this.centreCoordinates[index - 1].coordinates[0],
+          this.centreCoordinates[index - 1].coordinates[1],
+          item.coordinates[0],
+          item.coordinates[1],
+        )
+
+        this.targetGPSDistance += this.getGPSDistanceBetweenLocations(
+          this.centreCoordinates[index - 1].coordinates[0],
+          this.centreCoordinates[index - 1].coordinates[1],
+          item.coordinates[0],
+          item.coordinates[1],
+        )
+      }
+    })
+
+    // Set the target number of steps for a team
+    this.targetNumberOfStepsForTeam = numberOfMetresToTravel / this.stepLengthInMetres;
   }
 }
