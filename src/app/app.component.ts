@@ -244,7 +244,7 @@ export class AppComponent {
 
       // Initialize the map (using Leaflet) with centre and zoom suitable to show UK map
       element = document.getElementById('leafletmap');
-      this.map = new L.map(element).setView([40.91, -35.95], 2);
+      this.map = new L.map(element).setView([40.91, 0], 2);
       const mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; ' + mapLink + ' Contributors',
