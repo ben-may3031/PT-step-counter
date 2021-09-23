@@ -50,6 +50,9 @@ export class AppComponent {
 
     // Set GPS coordinates for locations
     this.centreCoordinates = [
+      {coordinates: [-41.2923814, 174.7787463], label: 'Wellington'},
+      {coordinates: [69.7029321, 170.307033], label: 'Pevek'},
+      {coordinates: [31.6688967, 122.1137989], label: 'Shanghai'},
       {coordinates: [20.593684, 78.96288], label: 'India'},
       {coordinates: [42.315407, 43.35689199999999], label: 'Georgia'},
       {coordinates: [42.733883, 25.48583], label: 'Bulgaria'},
@@ -66,11 +69,13 @@ export class AppComponent {
       {coordinates: [50.26604709999999, -5.0527125], label: 'Cornwall'},
       {coordinates: [42.4072107, -71.3824374], label: 'Massachusetts'},
       {coordinates: [40.7127753, -74.0059728], label: 'New York'},
+      {coordinates: [4.710988599999999, -74.072092], label: 'Bogota'},
       {coordinates: [39.169567, -75.545001], label: 'Delaware'},
       {coordinates: [38.9071923, -77.03687069999999], label: 'Washington DC'},
       {coordinates: [46.729553, -94.6858998], label: 'Minnesota'},
       {coordinates: [31.9685988, -99.9018131], label: 'Texas'},
       {coordinates: [39.5500507, -105.7820674], label: 'Colorado'},
+      {coordinates: [61.2180556, -149.9002778], label: 'Anchorage'},
     ];
 
     this.stepLengthInMetres = 0.65
