@@ -30,7 +30,7 @@ export class AppComponent {
   centreCoordinates: any;
   lineData: any;
   targetGPSDistance: number;
-  targetNumberOfStepsForTeam: number;
+  targetNumberOfMilesForTeam: number;
   maxProgress: number;
   targetCentreIndex: number;
   stepLengthInMetres: number;
@@ -50,31 +50,16 @@ export class AppComponent {
 
     // Set GPS coordinates for locations
     this.centreCoordinates = [
-      {coordinates: [-41.2923814, 174.7787463], label: 'Wellington'},
       {coordinates: [69.7029321, 170.307033], label: 'Pevek'},
-      {coordinates: [31.6688967, 122.1137989], label: 'Shanghai'},
       {coordinates: [20.593684, 78.96288], label: 'India'},
       {coordinates: [42.315407, 43.35689199999999], label: 'Georgia'},
       {coordinates: [42.733883, 25.48583], label: 'Bulgaria'},
-      {coordinates: [55.671335, 12.5851452], label: 'Copenhagen'},
       {coordinates: [41.9027835, 12.4963655], label: 'Rome'},
+      {coordinates: [55.671335, 12.5851452], label: 'Copenhagen'},
       {coordinates: [50.503887, 4.469936], label: 'Belgium'},
-      {coordinates: [52.056736, 1.14822], label: 'Ipswich'},
-      {coordinates: [50.9085955, 0.2494166], label: 'East Sussex'},
       {coordinates: [51.509078, -0.085562], label: 'London'},
-      {coordinates: [52.370878, -1.265032], label: 'Rugby'},
-      {coordinates: [52.48624299999999, -1.890401], label: 'Birmingham'},
-      {coordinates: [51.453871, -2.599883], label: 'Bristol'},
-      {coordinates: [53.4083714, -2.9915726], label: 'Liverpool'},
-      {coordinates: [50.26604709999999, -5.0527125], label: 'Cornwall'},
-      {coordinates: [42.4072107, -71.3824374], label: 'Massachusetts'},
-      {coordinates: [40.7127753, -74.0059728], label: 'New York'},
       {coordinates: [4.710988599999999, -74.072092], label: 'Bogota'},
-      {coordinates: [39.169567, -75.545001], label: 'Delaware'},
-      {coordinates: [38.9071923, -77.03687069999999], label: 'Washington DC'},
-      {coordinates: [46.729553, -94.6858998], label: 'Minnesota'},
       {coordinates: [31.9685988, -99.9018131], label: 'Texas'},
-      {coordinates: [39.5500507, -105.7820674], label: 'Colorado'},
       {coordinates: [61.2180556, -149.9002778], label: 'Anchorage'},
     ];
 
@@ -112,28 +97,28 @@ export class AppComponent {
     for (const team of teamNames) {
       teamData.push({
         name: team,
-        // Loop over all database records and increment by the number of steps for the
+        // Loop over all database records and increment by the number of miles for the
         // record if the team is the team considered in the outer loop
-        steps: (function() {
-          let stepCounter = 0;
+        miles: (function() {
+          let milesCounter = 0;
           for (const response of data) {
               if (team === response[teamIndex]) {
                 if (response[unitIndex] == 'Steps') {
-                  stepCounter += response[amountIndex]
+                  milesCounter += (response[amountIndex] * stepLengthInMetres / 1000) * 0.621371
                 } else if (response[unitIndex] == 'Kilometres') {
-                  stepCounter += 1000 * response[amountIndex] / stepLengthInMetres
+                  milesCounter += response[amountIndex] * 0.621371
                 } else if (response[unitIndex] == 'Miles') {
-                  stepCounter += (1000 / 0.621371) * response[amountIndex] / stepLengthInMetres
+                  milesCounter += response[amountIndex]
                 }
               }
           }
-          return stepCounter;
+          return milesCounter;
         }()),
       });
     }
 
     // Sort the team data by number of step (descending)
-    this.teamDataSorted = teamData.sort((a, b) => b.steps - a.steps);
+    this.teamDataSorted = teamData.sort((a, b) => b.miles - a.miles);
     // Use the sorted team data to plot the map
     this.renderMap(this.teamDataSorted);
   }
@@ -174,20 +159,20 @@ export class AppComponent {
       }
     });
 
-    // Evaluate an array of team data, storing the team name, the number of steps
+    // Evaluate an array of team data, storing the team name, the number of miles
     // the team has entered as a proportion of the steps target capped at this.maxProgress
     // (which is currently the progress along the map route to Belfast, the final centre
     // of the route), and the colour to be associated with the team in the map.
-    // The array is set to contain data for the top ten teams by total number of steps
-    let stepsSum = 0;
+    // The array is set to contain data for the top ten teams by total number of miles
+    let milesSum = 0;
 
     teamDataSorted.forEach((item, index) => {
-      stepsSum += item.steps
+      milesSum += item.miles
     })
 
     const progressByTeam = [{
       name: 'Team Wazoku',
-      progress: Math.min(this.maxProgress, stepsSum / this.targetNumberOfStepsForTeam),
+      progress: Math.min(this.maxProgress, milesSum / this.targetNumberOfMilesForTeam),
       colour: '#080A27',
     }]
 
@@ -387,7 +372,7 @@ export class AppComponent {
       }
     })
 
-    // Set the target number of steps for a team
-    this.targetNumberOfStepsForTeam = numberOfMetresToTravel / this.stepLengthInMetres;
+    // Set the target number of miles for a team
+    this.targetNumberOfMilesForTeam = 0.621371 * numberOfMetresToTravel / 1000;
   }
 }
