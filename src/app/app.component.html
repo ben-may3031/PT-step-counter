@@ -27,7 +27,7 @@
               <tr *ngFor="let team of teamDataSorted; let i = index">
                 <td [style.background-color] = "colourArray[i]">{{i + 1}} </td>
                 <td>{{team.name}} </td>
-                <td>{{team.steps.toLocaleString("en", {minimumFractionDigits: 0, maximumFractionDigits: 0})}}</td>
+                <td>{{team.miles.toLocaleString("en", {minimumFractionDigits: 0, maximumFractionDigits: 0})}}</td>
               </tr>
             </tbody>
           </table>
