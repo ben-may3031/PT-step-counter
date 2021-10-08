@@ -211,8 +211,31 @@ export class AppComponent {
         lineData[upperIndex].toCoords[0] - lineData[upperIndex].fromCoords[0],
         lineData[upperIndex].toCoords[1] - lineData[upperIndex].fromCoords[1],
       ];
-      // Scale the difference vector by the line section progress proportion for the team
-      const scaledCoords = diffCoords.map(item => item * sectionProgress);
+
+      const sectionGPSLength = Math.sqrt(Math.pow(diffCoords[0], 2) + Math.pow(diffCoords[1], 2))
+
+      const progressGPSLength = sectionGPSLength * sectionProgress
+
+      const angle = Math.atan(Math.abs(diffCoords[0]) / Math.abs(diffCoords[1]))
+      const latShiftSize = progressGPSLength * Math.sin(angle)
+      const lonShiftSize = progressGPSLength * Math.cos(angle)
+
+      let latShift = 0
+      let lonShift = 0
+
+      if (diffCoords[0] < 0){
+        latShift = -latShiftSize
+      } else {
+        latShift = latShiftSize
+      }
+
+      if (diffCoords[1] < 0){
+        lonShift = -lonShiftSize
+      } else {
+        lonShift = lonShiftSize
+      }
+
+      const scaledCoords = [latShift, lonShift]
       // Add the scaled difference vector to the lineData from coordinates to find the
       // team coordinates
       const output = Object.assign({}, lineData[upperIndex].fromCoords);
