@@ -34,6 +34,7 @@ export class AppComponent {
   maxProgress: number;
   targetCentreIndex: number;
   stepLengthInMetres: number;
+  milesSum: number;
 
   constructor(db: AngularFireDatabase) {
     // Watch for updates in the database and run onUpdate if watch triggered
@@ -169,6 +170,8 @@ export class AppComponent {
     teamDataSorted.forEach((item, index) => {
       milesSum += item.miles
     })
+
+    this.milesSum = milesSum
 
     const progressByTeam = [{
       name: 'Team Wazoku',

@@ -2,7 +2,7 @@
   position:relative;
 }
 #table-scroll {
-  height:30em;
+  height:60em;
   overflow:auto;
   margin-top:20px;
 }

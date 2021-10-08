@@ -24,6 +24,11 @@
               </tr>
             </thead>
             <tbody style="height=1em">
+              <tr>
+                <td [style.background-color] = "#080A27"></td>
+                <td>Wazoku </td>
+                <td>{{milesSum.toLocaleString("en", {minimumFractionDigits: 0, maximumFractionDigits: 0})}}</td>
+              </tr>
               <tr *ngFor="let team of teamDataSorted; let i = index">
                 <td [style.background-color] = "colourArray[i]">{{i + 1}} </td>
                 <td>{{team.name}} </td>
