@@ -65,6 +65,7 @@ export class AppComponent {
     ];
 
     this.stepLengthInMetres = 0.65
+    this.milesSum = 0
   }
 
   onUpdate(data) {
