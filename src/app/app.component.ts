@@ -51,17 +51,8 @@ export class AppComponent {
 
     // Set GPS coordinates for locations
     this.centreCoordinates = [
-      {coordinates: [69.7029321, 170.307033], label: 'Pevek'},
-      {coordinates: [20.593684, 78.96288], label: 'India'},
-      {coordinates: [42.315407, 43.35689199999999], label: 'Georgia'},
-      {coordinates: [42.733883, 25.48583], label: 'Bulgaria'},
-      {coordinates: [41.9027835, 12.4963655], label: 'Rome'},
-      {coordinates: [55.671335, 12.5851452], label: 'Copenhagen'},
-      {coordinates: [50.503887, 4.469936], label: 'Belgium'},
       {coordinates: [51.509078, -0.085562], label: 'London'},
       {coordinates: [4.710988599999999, -74.072092], label: 'Bogota'},
-      {coordinates: [31.9685988, -99.9018131], label: 'Texas'},
-      {coordinates: [61.2180556, -149.9002778], label: 'Anchorage'},
     ];
 
     this.stepLengthInMetres = 0.65
@@ -261,7 +252,7 @@ export class AppComponent {
 
       // Initialize the map (using Leaflet) with centre and zoom suitable to show UK map
       element = document.getElementById('leafletmap');
-      this.map = new L.map(element).setView([40.91, 0], 2);
+      this.map = new L.map(element).setView([30.91, -30], 4);
       const mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; ' + mapLink + ' Contributors',
@@ -305,16 +296,16 @@ export class AppComponent {
         + this.map.latLngToLayerPoint(this.centreCoordinates[lastCentreIndex].coordinates).y + ')',
       );
 
-      // Plot the line sections (using this.lineData)
-      const lines = g.selectAll('line')
-        .data(this.lineData)
-        .enter().append('line')
-        .attr('x1', d => this.map.latLngToLayerPoint(d.fromCoords).x)
-        .attr('x2', d => this.map.latLngToLayerPoint(d.toCoords).x)
-        .attr('y1', d => this.map.latLngToLayerPoint(d.fromCoords).y)
-        .attr('y2', d => this.map.latLngToLayerPoint(d.toCoords).y)
-        .style('stroke-width', 1)
-        .style('stroke', 'black');
+      // // Plot the line sections (using this.lineData)
+      // const lines = g.selectAll('line')
+      //   .data(this.lineData)
+      //   .enter().append('line')
+      //   .attr('x1', d => this.map.latLngToLayerPoint(d.fromCoords).x)
+      //   .attr('x2', d => this.map.latLngToLayerPoint(d.toCoords).x)
+      //   .attr('y1', d => this.map.latLngToLayerPoint(d.fromCoords).y)
+      //   .attr('y2', d => this.map.latLngToLayerPoint(d.toCoords).y)
+      //   .style('stroke-width', 1)
+      //   .style('stroke', 'black');
 
       // Find the SVG coordinates (using GPS coordinates) for the centre points
       // Also, set the colour and radii for the points

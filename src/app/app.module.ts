@@ -15,13 +15,13 @@ import { AppComponent } from './app.component';
 
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyBoyvJNfr4kV3seqOyI1_Jw7HMdebtMGd0",
-  authDomain: "wazoku-steps.firebaseapp.com",
-  databaseURL: "https://wazoku-steps-default-rtdb.firebaseio.com",
-  projectId: "wazoku-steps",
-  storageBucket: "wazoku-steps.appspot.com",
-  messagingSenderId: "315198827013",
-  appId: "1:315198827013:web:a8cf36dd24428db213ca6c"
+  apiKey: "AIzaSyCf_4a8Sac4zKswcsDmxGtBWCmHdKa-Kvk",
+  authDomain: "wazoku-bogota-expedition.firebaseapp.com",
+  databaseURL: "https://wazoku-bogota-expedition-default-rtdb.firebaseio.com",
+  projectId: "wazoku-bogota-expedition",
+  storageBucket: "wazoku-bogota-expedition.appspot.com",
+  messagingSenderId: "471486410964",
+  appId: "1:471486410964:web:491c80723cd4924ebd4b41"
 };
 
 @NgModule({
